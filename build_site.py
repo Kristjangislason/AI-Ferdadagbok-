@@ -165,6 +165,8 @@ def parse_entry(filepath):
     # Convert to HTML (skip the title line, we render it separately)
     body_md = text[title_match.end():].strip() if title_match else text
     body_html = markdown.markdown(body_md)
+    # Remove trailing horizontal rules (from leftover --- in Markdown)
+    body_html = re.sub(r"(\s*<hr\s*/?>)+\s*$", "", body_html)
 
     return {
         "title": title,
