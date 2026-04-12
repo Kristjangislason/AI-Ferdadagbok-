@@ -157,9 +157,9 @@ def parse_entry(filepath):
     title_match = re.match(r"^#\s+(.+)$", text, re.MULTILINE)
     title = title_match.group(1) if title_match else filepath.stem
 
-    # Extract date from filename
+    # Extract date from filename (always present — filenames are yyyy-mm-dd-slug.md)
     date_match = re.match(r"(\d{4}-\d{2}-\d{2})", filepath.name)
-    date_str = date_match.group(1) if date_match else ""
+    date_str = date_match.group(1) if date_match else filepath.name[:10]
 
     # Convert to HTML (skip the title line, we render it separately)
     body_md = text[title_match.end():].strip() if title_match else text
@@ -184,7 +184,7 @@ def build():
 
     # Build individual entry pages
     for entry in entries:
-        body = f'<article><h1>{entry["title"]}</h1>{entry["body_html"]}</article>'
+        body = f'<article><h1>{entry["title"]}</h1><div class="entry-date">{entry["date"]}</div>{entry["body_html"]}</article>'
         page = html_page(entry["title"], body)
         (DOCS_DIR / f'{entry["slug"]}.html').write_text(page)
 

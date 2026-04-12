@@ -30,7 +30,7 @@ Rules:
 - Never invent facts — only use what the notes provide
 - Keep it concise but evocative — aim for 150–300 words
 - Start with a heading: # Month Day — Short Title
-- Infer the date from the notes
+- Use the date and location from the header the user provides
 
 After the journal entry, on a new line, output exactly:
 FILENAME: <yyyy-mm-dd-short-slug.md>
@@ -67,7 +67,6 @@ def find_section_blocks(blocks, header_text):
     in_section = False
 
     for block in blocks:
-        # Check if this is a heading_2 block
         if block["type"] == "heading_2":
             text = extract_text(block)
             if text.strip().upper() == header_text.upper():
@@ -81,22 +80,42 @@ def find_section_blocks(blocks, header_text):
     return section_blocks
 
 
-def blocks_to_text(blocks):
-    """Convert a list of blocks to plain text."""
-    lines = []
+def split_entries_by_headers(blocks):
+    """Split blocks into entries grouped by ### headers.
+
+    Returns a list of (header_text, [blocks]) tuples.
+    """
+    entries = []
+    current_header = None
+    current_blocks = []
+
     for block in blocks:
+        if block["type"] == "heading_3":
+            # Save previous entry if it exists
+            if current_header is not None and current_blocks:
+                entries.append((current_header, current_blocks))
+            current_header = extract_text(block)
+            current_blocks = [block]
+        elif current_header is not None:
+            current_blocks.append(block)
+
+    # Save last entry
+    if current_header is not None and current_blocks:
+        entries.append((current_header, current_blocks))
+
+    return entries
+
+
+def entry_blocks_to_text(header, blocks):
+    """Convert a header and its blocks to plain text for Claude."""
+    lines = [f"### {header}"]
+    for block in blocks:
+        if block["type"] == "heading_3":
+            continue
         text = extract_text(block)
         if text:
             lines.append(text)
-        elif block["type"] == "divider":
-            lines.append("---")
     return "\n".join(lines)
-
-
-def split_entries(text):
-    """Split text by --- separators into individual entries."""
-    entries = [e.strip() for e in text.split("---")]
-    return [e for e in entries if e]
 
 
 def write_journal_entry(notes):
@@ -110,7 +129,6 @@ def write_journal_entry(notes):
 
     output = response.content[0].text
 
-    # Split off the FILENAME line
     match = re.search(r"FILENAME:\s*(.+\.md)", output)
     if not match:
         raise ValueError(f"Claude didn't return a FILENAME line. Output:\n{output}")
@@ -121,8 +139,34 @@ def write_journal_entry(notes):
     return filename, entry_text
 
 
-def move_to_done(blocks_to_move, all_blocks):
-    """Delete processed blocks from TO PROCESS and append them under DONE."""
+def rebuild_block(block):
+    """Rebuild a block for appending to Notion, preserving its original type."""
+    block_type = block["type"]
+
+    if block_type == "divider":
+        return {"type": "divider", "divider": {}}
+
+    if block_type in ("heading_1", "heading_2", "heading_3"):
+        rich_text = block[block_type].get("rich_text", [])
+        return {"type": block_type, block_type: {"rich_text": rich_text}}
+
+    # For bulleted/numbered lists, paragraphs, etc.
+    if block_type in block and "rich_text" in block[block_type]:
+        rich_text = block[block_type]["rich_text"]
+        return {"type": block_type, block_type: {"rich_text": rich_text}}
+
+    # Fallback: paragraph with extracted text
+    text = extract_text(block)
+    if text:
+        return {
+            "type": "paragraph",
+            "paragraph": {"rich_text": [{"type": "text", "text": {"content": text}}]},
+        }
+    return None
+
+
+def move_to_done(all_entry_blocks, all_blocks):
+    """Move processed blocks from TO PROCESS to DONE cleanly."""
     # Find the DONE heading
     done_heading_id = None
     for block in all_blocks:
@@ -132,35 +176,30 @@ def move_to_done(blocks_to_move, all_blocks):
 
     # If no DONE section exists, create it at the end of the page
     if not done_heading_id:
-        notion.blocks.children.append(
+        result = notion.blocks.children.append(
             block_id=PAGE_ID,
             children=[
                 {"type": "heading_2", "heading_2": {"rich_text": [{"type": "text", "text": {"content": "DONE"}}]}},
-                {"type": "divider", "divider": {}},
             ],
         )
+        done_heading_id = result["results"][0]["id"]
 
-    # Rebuild the content to append under DONE — add a divider then the blocks
-    children_to_append = [{"type": "divider", "divider": {}}]
-    for block in blocks_to_move:
-        block_type = block["type"]
-        if block_type == "divider":
-            children_to_append.append({"type": "divider", "divider": {}})
-        else:
-            rich_text = block[block_type].get("rich_text", [])
-            children_to_append.append({
-                "type": "paragraph",
-                "paragraph": {"rich_text": rich_text},
-            })
+    # Rebuild blocks preserving original types, no extra dividers
+    children_to_append = []
+    for block in all_entry_blocks:
+        rebuilt = rebuild_block(block)
+        if rebuilt:
+            children_to_append.append(rebuilt)
 
-    # Append under DONE — find the block after DONE heading to insert after
-    if done_heading_id:
-        notion.blocks.children.append(block_id=PAGE_ID, children=children_to_append, after=done_heading_id)
-    else:
-        notion.blocks.children.append(block_id=PAGE_ID, children=children_to_append)
+    if children_to_append:
+        notion.blocks.children.append(
+            block_id=PAGE_ID,
+            children=children_to_append,
+            after=done_heading_id,
+        )
 
     # Delete the original blocks from TO PROCESS
-    for block in blocks_to_move:
+    for block in all_entry_blocks:
         notion.blocks.delete(block_id=block["id"])
 
 
@@ -173,14 +212,13 @@ def main():
         print("Nothing to process.")
         return
 
-    text = blocks_to_text(section_blocks)
-    entries = split_entries(text)
+    entries = split_entries_by_headers(section_blocks)
     print(f"Found {len(entries)} entry/entries to process.")
 
-    for i, notes in enumerate(entries, 1):
-        print(f"\n[{i}/{len(entries)}] Processing...")
-        print(f"  Notes: {notes[:80]}...")
+    for i, (header, blocks) in enumerate(entries, 1):
+        print(f"\n[{i}/{len(entries)}] Processing: {header}")
 
+        notes = entry_blocks_to_text(header, blocks)
         filename, entry_text = write_journal_entry(notes)
         date_prefix = filename[:11]  # e.g. "2025-05-01-"
 
