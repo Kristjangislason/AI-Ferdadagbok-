@@ -158,8 +158,9 @@ def parse_entry(filepath):
     title = title_match.group(1) if title_match else filepath.stem
 
     # Extract date from filename (always present — filenames are yyyy-mm-dd-slug.md)
-    date_match = re.match(r"(\d{4}-\d{2}-\d{2})", filepath.name)
-    date_str = date_match.group(1) if date_match else filepath.name[:10]
+    clean_name = re.sub(r"[^0-9a-zA-Z._-]", "", filepath.name)
+    date_match = re.match(r"(\d{4}-\d{2}-\d{2})", clean_name)
+    date_str = date_match.group(1) if date_match else clean_name[:10]
 
     # Convert to HTML (skip the title line, we render it separately)
     body_md = text[title_match.end():].strip() if title_match else text

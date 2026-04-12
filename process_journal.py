@@ -133,7 +133,7 @@ def write_journal_entry(notes):
     if not match:
         raise ValueError(f"Claude didn't return a FILENAME line. Output:\n{output}")
 
-    filename = match.group(1).strip()
+    filename = re.sub(r"[^0-9a-zA-Z._-]", "", match.group(1).strip())
     entry_text = output[: match.start()].strip()
 
     return filename, entry_text
