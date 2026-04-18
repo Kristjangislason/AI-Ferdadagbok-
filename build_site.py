@@ -186,6 +186,199 @@ article figcaption {
     font-style: italic;
 }
 
+/* --- Landing page --- */
+
+.landing-header {
+    margin-bottom: 80px;
+    text-align: center;
+}
+
+.landing-header h1 {
+    font-family: 'Cormorant Garamond', 'Fraunces', Georgia, serif;
+    font-size: 64px;
+    font-weight: 400;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    color: var(--text);
+}
+
+.landing-header .subtitle {
+    font-size: 15px;
+    color: var(--text-muted);
+    margin-top: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.landing-header .route {
+    font-family: 'Cormorant Garamond', 'Fraunces', Georgia, serif;
+    font-size: 18px;
+    font-style: italic;
+    color: var(--sage);
+    margin-top: 20px;
+    line-height: 1.6;
+}
+
+.landing-divider {
+    width: 48px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--wood-dark), var(--wood), var(--wood-dark));
+    margin: 0 auto 64px;
+    border: none;
+    border-radius: 1px;
+}
+
+.landing-nav {
+    display: flex;
+    gap: 20px;
+    list-style: none;
+}
+
+.landing-nav li {
+    flex: 1;
+}
+
+.landing-nav a {
+    text-decoration: none;
+    color: var(--text);
+    display: block;
+    padding: 40px 32px 36px;
+    background: linear-gradient(160deg, rgba(37, 53, 48, 0.85), rgba(31, 46, 40, 0.6));
+    border-radius: 16px;
+    border: 1px solid rgba(166, 115, 72, 0.15);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.landing-nav a::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--wood-dark), var(--wood), var(--mustard));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.landing-nav a:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.3);
+    border-color: rgba(166, 115, 72, 0.3);
+    background: linear-gradient(160deg, rgba(37, 53, 48, 0.95), rgba(31, 46, 40, 0.75));
+}
+
+.landing-nav a:hover::before {
+    opacity: 1;
+}
+
+.landing-nav .nav-number {
+    font-family: 'Cormorant Garamond', 'Fraunces', Georgia, serif;
+    font-size: 48px;
+    font-weight: 300;
+    color: rgba(166, 115, 72, 0.25);
+    line-height: 1;
+    margin-bottom: 20px;
+}
+
+.landing-nav .nav-label {
+    font-family: 'Cormorant Garamond', 'Fraunces', Georgia, serif;
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    margin-bottom: 8px;
+}
+
+.landing-nav .nav-desc {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+/* --- Section heading on subpages --- */
+
+.section-heading {
+    font-family: 'Cormorant Garamond', 'Fraunces', Georgia, serif;
+    font-size: 32px;
+    font-weight: 400;
+    font-style: italic;
+    color: var(--sage);
+    margin-bottom: 40px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(166, 115, 72, 0.2);
+}
+
+/* --- Gallery --- */
+
+.gallery-grid {
+    columns: 2;
+    column-gap: 20px;
+}
+
+.gallery-item {
+    break-inside: avoid;
+    margin-bottom: 24px;
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--card-bg);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.gallery-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 36px rgba(0, 0, 0, 0.35);
+}
+
+.gallery-item img {
+    width: 100%;
+    height: auto;
+    display: block;
+    transition: transform 0.4s ease;
+}
+
+.gallery-item:hover img {
+    transform: scale(1.03);
+}
+
+.gallery-item .gallery-info {
+    padding: 14px 16px;
+}
+
+.gallery-item .gallery-caption {
+    font-family: 'Cormorant Garamond', 'Fraunces', Georgia, serif;
+    font-size: 16px;
+    color: var(--text);
+    font-style: italic;
+    line-height: 1.4;
+    margin-bottom: 4px;
+}
+
+.gallery-item .gallery-entry-link {
+    font-size: 12px;
+    color: var(--wood);
+    text-decoration: none;
+    letter-spacing: 0.02em;
+    transition: color 0.2s ease;
+}
+
+.gallery-item .gallery-entry-link:hover {
+    color: var(--mustard);
+}
+
+.gallery-empty {
+    text-align: center;
+    padding: 80px 0;
+    color: var(--text-muted);
+    font-family: 'Cormorant Garamond', 'Fraunces', Georgia, serif;
+    font-size: 22px;
+    font-style: italic;
+}
+
 /* --- Ambient glow decoration --- */
 
 body::before {
@@ -221,12 +414,21 @@ body::after {
     article h1 { font-size: 28px; }
     .entry-title { font-size: 20px; }
     .entry-list a { padding: 22px 20px; }
+    .landing-header h1 { font-size: 42px; }
+    .landing-nav { flex-direction: column; gap: 14px; }
+    .landing-nav a { padding: 32px 24px; }
+    .landing-nav .nav-number { font-size: 36px; margin-bottom: 12px; }
+    .gallery-grid { columns: 1; }
+    .section-heading { font-size: 26px; }
 }
 """
 
 
-def html_page(title, body, is_index=False):
-    back_nav = "" if is_index else '<nav class="back"><a href="index.html">&larr; Back</a></nav>'
+def html_page(title, body, back_to=None):
+    if back_to:
+        back_nav = f'<nav class="back"><a href="{back_to}">&larr; Back</a></nav>'
+    else:
+        back_nav = ""
     return f"""\
 <!DOCTYPE html>
 <html lang="en">
@@ -303,10 +505,10 @@ def build():
     # Build individual entry pages
     for entry in entries:
         body = f'<article><h1>{entry["title"]}</h1><div class="entry-date">{entry["date"]}</div>{entry["body_html"]}</article>'
-        page = html_page(entry["title"], body)
+        page = html_page(entry["title"], body, back_to="blog.html")
         (DOCS_DIR / f'{entry["slug"]}.html').write_text(page)
 
-    # Build index
+    # Build blog page (entry list)
     items = ""
     for entry in reversed(entries):  # newest first
         items += (
@@ -315,11 +517,92 @@ def build():
             f'<div class="entry-date">{entry["date"]}</div>'
             f'</a></li>\n'
         )
-    index_body = f'<ul class="entry-list">{items}</ul>'
-    index_page = html_page("Ferðadagbók", index_body, is_index=True)
-    (DOCS_DIR / "index.html").write_text(index_page)
+    blog_body = f'<h2 class="section-heading">Journal</h2>\n<ul class="entry-list">{items}</ul>'
+    blog_page = html_page("Ferðadagbók — Blog", blog_body, back_to="index.html")
+    (DOCS_DIR / "blog.html").write_text(blog_page)
 
-    print(f"Built {len(entries)} entries → docs/")
+    # Build gallery page (all images from entries)
+    # Collect images — track seen URLs to avoid duplicates from figure+img
+    gallery_items = ""
+    seen_srcs = set()
+    for entry in reversed(entries):
+        # Check for figure-wrapped images first
+        for fig_match in re.finditer(r'<figure><img\s+src="([^"]*)"(?:\s+alt="([^"]*)")?><figcaption>([^<]*)</figcaption></figure>', entry["body_html"]):
+            src, alt, caption = fig_match.group(1), fig_match.group(2) or "", fig_match.group(3)
+            seen_srcs.add(src)
+            caption_html = f'<div class="gallery-caption">{caption}</div>' if caption else ""
+            gallery_items += (
+                f'<div class="gallery-item">'
+                f'<img src="{src}" alt="{alt}">'
+                f'<div class="gallery-info">'
+                f'{caption_html}'
+                f'<a class="gallery-entry-link" href="{entry["slug"]}.html">{entry["title"]}</a>'
+                f'</div></div>\n'
+            )
+        # Then standalone images not already captured
+        for img_match in re.finditer(r'<img\s+src="([^"]*)"(?:\s+alt="([^"]*)")?', entry["body_html"]):
+            src, alt = img_match.group(1), img_match.group(2) or ""
+            if src in seen_srcs:
+                continue
+            seen_srcs.add(src)
+            caption_html = f'<div class="gallery-caption">{alt}</div>' if alt else ""
+            gallery_items += (
+                f'<div class="gallery-item">'
+                f'<img src="{src}" alt="{alt}">'
+                f'<div class="gallery-info">'
+                f'{caption_html}'
+                f'<a class="gallery-entry-link" href="{entry["slug"]}.html">{entry["title"]}</a>'
+                f'</div></div>\n'
+            )
+
+    if not gallery_items:
+        gallery_body = '<p class="gallery-empty">No photos yet — they\'ll appear here as the journey unfolds.</p>'
+    else:
+        gallery_body = f'<h2 class="section-heading">Photos</h2>\n<div class="gallery-grid">{gallery_items}</div>'
+    gallery_page = html_page("Ferðadagbók — Photos", gallery_body, back_to="index.html")
+    (DOCS_DIR / "gallery.html").write_text(gallery_page)
+
+    # Build landing page (index) — custom layout, no shared header
+    entry_count = len(entries)
+    image_count = len(seen_srcs)
+    landing_html = f"""\
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fer&eth;adagb&oacute;k</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>{BASE_STYLE}</style>
+</head>
+<body>
+<div class="container">
+<div class="landing-header">
+<h1>Fer&eth;adagb&oacute;k</h1>
+<div class="subtitle">Indonesia &middot; 2026</div>
+<div class="route">Jakarta &rarr; Borneo &rarr; Sulawesi &rarr; Flores &rarr; Jakarta</div>
+</div>
+<hr class="landing-divider">
+<ul class="landing-nav">
+<li><a href="blog.html">
+<div class="nav-number">I</div>
+<div class="nav-label">Journal</div>
+<div class="nav-desc">{entry_count} entries from the road</div>
+</a></li>
+<li><a href="gallery.html">
+<div class="nav-number">II</div>
+<div class="nav-label">Photos</div>
+<div class="nav-desc">{image_count} snapshots along the way</div>
+</a></li>
+</ul>
+</div>
+</body>
+</html>"""
+    (DOCS_DIR / "index.html").write_text(landing_html)
+
+    print(f"Built {len(entries)} entries + blog + gallery + landing → docs/")
 
 
 if __name__ == "__main__":

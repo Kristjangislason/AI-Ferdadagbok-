@@ -179,6 +179,199 @@ article figcaption {
     font-style: italic;
 }
 
+/* --- Landing page --- */
+
+.landing-header {
+    margin-bottom: 80px;
+    text-align: center;
+}
+
+.landing-header h1 {
+    font-family: 'Cormorant Garamond', 'Fraunces', Georgia, serif;
+    font-size: 64px;
+    font-weight: 400;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    color: var(--text);
+}
+
+.landing-header .subtitle {
+    font-size: 15px;
+    color: var(--text-muted);
+    margin-top: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.landing-header .route {
+    font-family: 'Cormorant Garamond', 'Fraunces', Georgia, serif;
+    font-size: 18px;
+    font-style: italic;
+    color: var(--sage);
+    margin-top: 20px;
+    line-height: 1.6;
+}
+
+.landing-divider {
+    width: 48px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--wood-dark), var(--wood), var(--wood-dark));
+    margin: 0 auto 64px;
+    border: none;
+    border-radius: 1px;
+}
+
+.landing-nav {
+    display: flex;
+    gap: 20px;
+    list-style: none;
+}
+
+.landing-nav li {
+    flex: 1;
+}
+
+.landing-nav a {
+    text-decoration: none;
+    color: var(--text);
+    display: block;
+    padding: 40px 32px 36px;
+    background: linear-gradient(160deg, rgba(37, 53, 48, 0.85), rgba(31, 46, 40, 0.6));
+    border-radius: 16px;
+    border: 1px solid rgba(166, 115, 72, 0.15);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.landing-nav a::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--wood-dark), var(--wood), var(--mustard));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.landing-nav a:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.3);
+    border-color: rgba(166, 115, 72, 0.3);
+    background: linear-gradient(160deg, rgba(37, 53, 48, 0.95), rgba(31, 46, 40, 0.75));
+}
+
+.landing-nav a:hover::before {
+    opacity: 1;
+}
+
+.landing-nav .nav-number {
+    font-family: 'Cormorant Garamond', 'Fraunces', Georgia, serif;
+    font-size: 48px;
+    font-weight: 300;
+    color: rgba(166, 115, 72, 0.25);
+    line-height: 1;
+    margin-bottom: 20px;
+}
+
+.landing-nav .nav-label {
+    font-family: 'Cormorant Garamond', 'Fraunces', Georgia, serif;
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    margin-bottom: 8px;
+}
+
+.landing-nav .nav-desc {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+/* --- Section heading on subpages --- */
+
+.section-heading {
+    font-family: 'Cormorant Garamond', 'Fraunces', Georgia, serif;
+    font-size: 32px;
+    font-weight: 400;
+    font-style: italic;
+    color: var(--sage);
+    margin-bottom: 40px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(166, 115, 72, 0.2);
+}
+
+/* --- Gallery --- */
+
+.gallery-grid {
+    columns: 2;
+    column-gap: 20px;
+}
+
+.gallery-item {
+    break-inside: avoid;
+    margin-bottom: 24px;
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--card-bg);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.gallery-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 36px rgba(0, 0, 0, 0.35);
+}
+
+.gallery-item img {
+    width: 100%;
+    height: auto;
+    display: block;
+    transition: transform 0.4s ease;
+}
+
+.gallery-item:hover img {
+    transform: scale(1.03);
+}
+
+.gallery-item .gallery-info {
+    padding: 14px 16px;
+}
+
+.gallery-item .gallery-caption {
+    font-family: 'Cormorant Garamond', 'Fraunces', Georgia, serif;
+    font-size: 16px;
+    color: var(--text);
+    font-style: italic;
+    line-height: 1.4;
+    margin-bottom: 4px;
+}
+
+.gallery-item .gallery-entry-link {
+    font-size: 12px;
+    color: var(--wood);
+    text-decoration: none;
+    letter-spacing: 0.02em;
+    transition: color 0.2s ease;
+}
+
+.gallery-item .gallery-entry-link:hover {
+    color: var(--mustard);
+}
+
+.gallery-empty {
+    text-align: center;
+    padding: 80px 0;
+    color: var(--text-muted);
+    font-family: 'Cormorant Garamond', 'Fraunces', Georgia, serif;
+    font-size: 22px;
+    font-style: italic;
+}
+
 /* --- Ambient glow decoration --- */
 
 body::before {
@@ -214,13 +407,19 @@ body::after {
     article h1 { font-size: 28px; }
     .entry-title { font-size: 20px; }
     .entry-list a { padding: 22px 20px; }
+    .landing-header h1 { font-size: 42px; }
+    .landing-nav { flex-direction: column; gap: 14px; }
+    .landing-nav a { padding: 32px 24px; }
+    .landing-nav .nav-number { font-size: 36px; margin-bottom: 12px; }
+    .gallery-grid { columns: 1; }
+    .section-heading { font-size: 26px; }
 }
 </style>
 </head>
 <body>
 <div class="container">
 <header><a href="index.html"><h1>Fer&eth;adagb&oacute;k</h1><p>Indonesia &middot; 2026</p></a></header>
-<nav class="back"><a href="index.html">&larr; Back</a></nav>
+<nav class="back"><a href="blog.html">&larr; Back</a></nav>
 <article><h1>May 7 — First Day in Jakarta</h1><div class="entry-date">2025-05-07</div><p>Ég vaknaði við köll bænakallarans frá nálægri mosku og ákvað að byrja daginn í Kota Tua, gamla hollenska nýlenduhverfinu. Fatahillu- og Café Batavia stóðu þar eins og tímavélar, og ég settist niður með kaffi sem var svo sterkt að það hefði getað vakið dáið fólk.</p>
 <p>Seinna um daginn fór ég að Monas-turninum — þjóðminnismerki Indónesíu — og horfði yfir borgina sem teygði sig endalaust í allar áttir, byggingar og mosku-hvolfur svo langt sem augað eygði.</p>
 <p>Um kvöldið lenti ég í samtali við nokkra heimamenn á litlu kaffihúsi nálægt hótelinu. Þeir hlógu að íslenskunni minni, ég hló að tilraunum þeirra til að bera fram „Eyjafjallajökull", og einhvern veginn skildum við hvort annað prýðilega. Ég gekk heim á hótelið með þá tilfinningu að Jakarta, þrátt fyrir allan hávaðann og ringulreiðina, væri í raun undarlega hjartahlý borg.</p>
