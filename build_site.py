@@ -544,6 +544,74 @@ article figcaption {
     color: #B8B0A4;
 }
 
+/* --- Videos --- */
+
+.video-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.video-item {
+    background: var(--card-bg);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.video-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 36px rgba(0, 0, 0, 0.35);
+}
+
+.video-embed {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+}
+
+.video-embed iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.video-info {
+    padding: 20px 24px;
+}
+
+.video-title {
+    font-family: 'Cormorant Garamond', 'Fraunces', Georgia, serif;
+    font-size: 22px;
+    font-weight: 500;
+    line-height: 1.3;
+    margin-bottom: 6px;
+}
+
+.video-meta {
+    font-size: 13px;
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+}
+
+.video-meta .video-location {
+    color: var(--wood);
+}
+
+.video-empty {
+    text-align: center;
+    padding: 80px 0;
+    color: var(--text-muted);
+    font-family: 'Cormorant Garamond', 'Fraunces', Georgia, serif;
+    font-size: 22px;
+    font-style: italic;
+}
+
 /* --- Ambient glow decoration --- */
 
 body::before {
@@ -728,6 +796,39 @@ def build():
     gallery_page = html_page("Ferðadagbók — Photos", gallery_body, back_to="index.html")
     (DOCS_DIR / "gallery.html").write_text(gallery_page)
 
+    # Build videos page
+    videos_path = Path(__file__).parent / "videos.json"
+    if videos_path.exists():
+        videos = json.loads(videos_path.read_text())
+        # Filter out placeholder entries
+        videos = [v for v in videos if v.get("id") and not v["id"].startswith("YOUR_")]
+    else:
+        videos = []
+
+    if not videos:
+        videos_body = '<h2 class="section-heading">Videos</h2>\n<p class="video-empty">Drone footage coming soon — stay tuned.</p>'
+    else:
+        video_items = ""
+        for v in videos:
+            location_html = f' &middot; <span class="video-location">{v["location"]}</span>' if v.get("location") else ""
+            video_items += (
+                f'<div class="video-item">'
+                f'<div class="video-embed">'
+                f'<iframe src="https://www.youtube.com/embed/{v["id"]}" '
+                f'allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" '
+                f'allowfullscreen loading="lazy"></iframe>'
+                f'</div>'
+                f'<div class="video-info">'
+                f'<div class="video-title">{v.get("title", "Untitled")}</div>'
+                f'<div class="video-meta">{v.get("date", "")}{location_html}</div>'
+                f'</div></div>\n'
+            )
+        videos_body = f'<h2 class="section-heading">Videos</h2>\n<div class="video-grid">{video_items}</div>'
+
+    videos_page = html_page("Ferðadagbók — Videos", videos_body, back_to="index.html")
+    (DOCS_DIR / "videos.html").write_text(videos_page)
+    video_count = len(videos)
+
     # Build map data — group entries by location
     location_groups = {}
     for entry in entries:
@@ -782,6 +883,11 @@ def build():
 <div class="nav-number">II</div>
 <div class="nav-label">Photos</div>
 <div class="nav-desc">{image_count} snapshots along the way</div>
+</a></li>
+<li><a href="videos.html">
+<div class="nav-number">III</div>
+<div class="nav-label">Videos</div>
+<div class="nav-desc">{video_count} drone shots from above</div>
 </a></li>
 </ul>
 </div>
