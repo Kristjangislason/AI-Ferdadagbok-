@@ -241,7 +241,7 @@ def html_page(title, body, is_index=False):
 </head>
 <body>
 <div class="container">
-<header><a href="index.html"><h1>Fer&eth;adagb&oacute;k</h1><p>Indonesia &middot; 2025</p></a></header>
+<header><a href="index.html"><h1>Fer&eth;adagb&oacute;k</h1><p>Indonesia &middot; 2026</p></a></header>
 {back_nav}
 {body}
 </div>
