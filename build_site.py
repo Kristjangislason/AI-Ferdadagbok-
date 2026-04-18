@@ -121,6 +121,7 @@ def locate_entry(entry):
 
 BASE_STYLE = """\
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+a, a:visited { color: inherit; }
 
 :root {
     --bg: #131E17;
@@ -166,7 +167,8 @@ body {
     border-bottom: 1px solid rgba(196, 148, 74, 0.1);
 }
 
-.topbar .site-name {
+.topbar .site-name,
+.topbar .site-name:visited {
     font-family: 'Cormorant Garamond', Georgia, serif;
     font-size: 22px;
     font-weight: 600;
