@@ -16,7 +16,7 @@ from notion_client import Client
 
 load_dotenv(dotenv_path='.env')
 
-anthropic = Anthropic()
+client = Anthropic()
 notion = Client(auth=os.environ["NOTION_API_KEY"])
 PAGE_ID = os.environ["NOTION_PAGE_ID"]
 ENTRIES_DIR = Path(__file__).parent / "entries"
@@ -178,7 +178,7 @@ def entry_blocks_to_text(header, blocks, date_prefix=""):
 
 def write_journal_entry(notes):
     """Send notes to Claude and get back a polished journal entry."""
-    response = anthropic.messages.create(
+    response = client.messages.create(
         model="claude-sonnet-4-6",
         max_tokens=4096,
         system=SYSTEM_PROMPT,

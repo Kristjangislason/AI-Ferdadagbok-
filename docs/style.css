@@ -35,7 +35,7 @@ body {
 /* --- Header --- */
 
 header {
-    margin-bottom: 100px;
+    margin-bottom: 32px;
 }
 
 header a {
@@ -122,24 +122,6 @@ article .entry-date {
 
 article p {
     margin-bottom: 24px;
-}
-
-/* --- Back navigation --- */
-
-nav.back {
-    margin-bottom: 60px;
-}
-
-nav.back a {
-    font-size: 14px;
-    color: var(--wood);
-    text-decoration: none;
-    letter-spacing: 0.02em;
-    transition: color 0.2s ease;
-}
-
-nav.back a:hover {
-    color: var(--mustard);
 }
 
 /* --- Images --- */
@@ -486,8 +468,8 @@ article figcaption {
 .subnav {
     display: flex;
     gap: 8px;
-    margin-bottom: 48px;
-    padding-bottom: 24px;
+    margin-bottom: 52px;
+    padding-bottom: 20px;
     border-bottom: 1px solid rgba(166, 115, 72, 0.15);
 }
 
@@ -541,7 +523,7 @@ body::after {
 
 @media (max-width: 600px) {
     .container { padding: 60px 20px; }
-    header { margin-bottom: 60px; }
+    header { margin-bottom: 24px; }
     header h1 { font-size: 32px; }
     article h1 { font-size: 28px; }
     .entry-title { font-size: 20px; }

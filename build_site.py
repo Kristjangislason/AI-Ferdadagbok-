@@ -32,37 +32,32 @@ ROUTE_COORDS = [
 GEOCACHE_PATH = Path(__file__).parent / ".geocache.json"
 
 
-def load_geocache():
-    """Load cached geocoding results from disk."""
-    if GEOCACHE_PATH.exists():
-        return json.loads(GEOCACHE_PATH.read_text())
-    return {}
+_geocache = None
 
 
-def save_geocache(cache):
-    """Save geocoding results to disk."""
-    GEOCACHE_PATH.write_text(json.dumps(cache, indent=2, ensure_ascii=False))
+def _load_geocache():
+    global _geocache
+    if _geocache is None:
+        _geocache = json.loads(GEOCACHE_PATH.read_text()) if GEOCACHE_PATH.exists() else {}
+    return _geocache
+
+
+def _save_geocache():
+    if _geocache is not None:
+        GEOCACHE_PATH.write_text(json.dumps(_geocache, indent=2, ensure_ascii=False))
 
 
 def geocode(place_name):
-    """Look up coordinates for a place name using OpenStreetMap Nominatim.
-
-    Results are cached in .geocache.json so we only query once per place.
-    """
-    cache = load_geocache()
+    """Look up coordinates via OpenStreetMap Nominatim, with disk cache."""
+    cache = _load_geocache()
     key = place_name.lower().strip()
 
     if key in cache:
         return cache[key]
 
-    # Query Nominatim — bounded to Indonesia for relevance
     resp = requests.get(
         "https://nominatim.openstreetmap.org/search",
-        params={
-            "q": f"{place_name}, Indonesia",
-            "format": "json",
-            "limit": 1,
-        },
+        params={"q": f"{place_name}, Indonesia", "format": "json", "limit": 1},
         headers={"User-Agent": "Ferdadagbok-TravelJournal/1.0"},
         timeout=10,
     )
@@ -75,15 +70,11 @@ def geocode(place_name):
             "name": place_name,
         }
         cache[key] = loc
-        save_geocache(cache)
-        # Be polite to Nominatim — max 1 request per second
-        time.sleep(1)
-        return loc
+    else:
+        cache[key] = None
 
-    # Cache misses too, so we don't re-query
-    cache[key] = None
-    save_geocache(cache)
-    return None
+    time.sleep(1)  # Nominatim rate limit
+    return cache[key]
 
 
 def extract_place_name(title):
@@ -166,7 +157,7 @@ body {
 /* --- Header --- */
 
 header {
-    margin-bottom: 100px;
+    margin-bottom: 32px;
 }
 
 header a {
@@ -253,24 +244,6 @@ article .entry-date {
 
 article p {
     margin-bottom: 24px;
-}
-
-/* --- Back navigation --- */
-
-nav.back {
-    margin-bottom: 60px;
-}
-
-nav.back a {
-    font-size: 14px;
-    color: var(--wood);
-    text-decoration: none;
-    letter-spacing: 0.02em;
-    transition: color 0.2s ease;
-}
-
-nav.back a:hover {
-    color: var(--mustard);
 }
 
 /* --- Images --- */
@@ -617,8 +590,8 @@ article figcaption {
 .subnav {
     display: flex;
     gap: 8px;
-    margin-bottom: 48px;
-    padding-bottom: 24px;
+    margin-bottom: 52px;
+    padding-bottom: 20px;
     border-bottom: 1px solid rgba(166, 115, 72, 0.15);
 }
 
@@ -672,7 +645,7 @@ body::after {
 
 @media (max-width: 600px) {
     .container { padding: 60px 20px; }
-    header { margin-bottom: 60px; }
+    header { margin-bottom: 24px; }
     header h1 { font-size: 32px; }
     article h1 { font-size: 28px; }
     .entry-title { font-size: 20px; }
@@ -696,12 +669,7 @@ SUBNAV_PAGES = [
 ]
 
 
-def html_page(title, body, back_to=None, active_page=None):
-    if back_to:
-        back_nav = f'<nav class="back"><a href="{back_to}">&larr; Back</a></nav>'
-    else:
-        back_nav = ""
-
+def html_page(title, body, active_page=None, head_extra="", scripts=""):
     if active_page:
         nav_links = ""
         for href, label in SUBNAV_PAGES:
@@ -721,17 +689,16 @@ def html_page(title, body, back_to=None, active_page=None):
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500&display=swap" rel="stylesheet">
-<style>html {{ background: #1F2E28; }}</style>
+{head_extra}<style>html {{ background: #1F2E28; }}</style>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="container">
 <header><a href="index.html"><h1>Fer&eth;adagb&oacute;k</h1><p>Indonesia &middot; 2026</p></a></header>
 {subnav}
-{back_nav}
 {body}
 </div>
-</body>
+{scripts}</body>
 </html>
 """
 
@@ -776,23 +743,19 @@ def build():
         shutil.rmtree(DOCS_DIR)
     DOCS_DIR.mkdir()
 
-    # Write CSS to a separate cached file
     (DOCS_DIR / "style.css").write_text(BASE_STYLE)
 
-    # Copy images to docs/images/ if any exist
     docs_images = DOCS_DIR / "images"
     if IMAGES_DIR.exists() and any(IMAGES_DIR.iterdir()):
         shutil.copytree(IMAGES_DIR, docs_images)
         print(f"Copied {len(list(docs_images.iterdir()))} images → docs/images/")
 
-    # Gather and sort entries by filename (date)
     entry_files = sorted(ENTRIES_DIR.glob("*.md"))
     entries = [parse_entry(f) for f in entry_files]
 
-    # Build individual entry pages
     for entry in entries:
         body = f'<article><h1>{entry["title"]}</h1><div class="entry-date">{entry["date"]}</div>{entry["body_html"]}</article>'
-        page = html_page(entry["title"], body, back_to="blog.html")
+        page = html_page(entry["title"], body, active_page="blog.html")
         (DOCS_DIR / f'{entry["slug"]}.html').write_text(page)
 
     # Build blog page (entry list)
@@ -808,44 +771,29 @@ def build():
     blog_page = html_page("Ferðadagbók — Blog", blog_body, active_page="blog.html")
     (DOCS_DIR / "blog.html").write_text(blog_page)
 
-    # Build gallery page (all images from entries)
-    # Collect images — track seen URLs to avoid duplicates from figure+img
-    gallery_items = ""
+    gallery_items = []
     seen_srcs = set()
     for entry in reversed(entries):
-        # Check for figure-wrapped images first
-        for fig_match in re.finditer(r'<figure><img\s+src="([^"]*)"(?:\s+alt="([^"]*)")?><figcaption>([^<]*)</figcaption></figure>', entry["body_html"]):
-            src, alt, caption = fig_match.group(1), fig_match.group(2) or "", fig_match.group(3)
-            seen_srcs.add(src)
-            caption_html = f'<div class="gallery-caption">{caption}</div>' if caption else ""
-            gallery_items += (
-                f'<div class="gallery-item">'
-                f'<img src="{src}" alt="{alt}">'
-                f'<div class="gallery-info">'
-                f'{caption_html}'
-                f'<a class="gallery-entry-link" href="{entry["slug"]}.html">{entry["title"]}</a>'
-                f'</div></div>\n'
-            )
-        # Then standalone images not already captured
-        for img_match in re.finditer(r'<img\s+src="([^"]*)"(?:\s+alt="([^"]*)")?', entry["body_html"]):
-            src, alt = img_match.group(1), img_match.group(2) or ""
+        for m in re.finditer(r'<(?:figure><)?img\s+src="([^"]*)"(?:\s+alt="([^"]*)")?[^>]*>(?:<figcaption>([^<]*)</figcaption></figure>)?', entry["body_html"]):
+            src = m.group(1)
             if src in seen_srcs:
                 continue
             seen_srcs.add(src)
-            caption_html = f'<div class="gallery-caption">{alt}</div>' if alt else ""
-            gallery_items += (
+            caption = m.group(3) or m.group(2) or ""
+            caption_html = f'<div class="gallery-caption">{caption}</div>' if caption else ""
+            gallery_items.append(
                 f'<div class="gallery-item">'
-                f'<img src="{src}" alt="{alt}">'
+                f'<img src="{src}" alt="{caption}">'
                 f'<div class="gallery-info">'
                 f'{caption_html}'
                 f'<a class="gallery-entry-link" href="{entry["slug"]}.html">{entry["title"]}</a>'
-                f'</div></div>\n'
+                f'</div></div>'
             )
 
     if not gallery_items:
         gallery_body = '<p class="gallery-empty">No photos yet — they\'ll appear here as the journey unfolds.</p>'
     else:
-        gallery_body = f'<h2 class="section-heading">Photos</h2>\n<div class="gallery-grid">{gallery_items}</div>'
+        gallery_body = f'<h2 class="section-heading">Photos</h2>\n<div class="gallery-grid">{chr(10).join(gallery_items)}</div>'
     gallery_page = html_page("Ferðadagbók — Photos", gallery_body, active_page="gallery.html")
     (DOCS_DIR / "gallery.html").write_text(gallery_page)
 
@@ -902,22 +850,8 @@ def build():
     # Build landing page (index) — custom layout with map
     entry_count = len(entries)
     image_count = len(seen_srcs)
-    landing_html = f"""\
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fer&eth;adagb&oacute;k</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<style>html {{ background: #1F2E28; }}</style>
-<link rel="stylesheet" href="style.css">
-</head>
-<body>
-<div class="container">
+
+    landing_body = f"""\
 <div class="landing-header">
 <h1>Fer&eth;adagb&oacute;k</h1>
 <div class="subtitle">Indonesia &middot; 2026</div>
@@ -943,8 +877,9 @@ def build():
 <div class="nav-label">Videos</div>
 <div class="nav-desc">{video_count} drone shots from above</div>
 </a></li>
-</ul>
-</div>
+</ul>"""
+
+    map_script = f"""\
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 (function() {{
@@ -960,7 +895,6 @@ def build():
         subdomains: 'abcd'
     }}).addTo(map);
 
-    // Route line
     var route = {route_json};
     L.polyline(route, {{
         color: '#8B5A3C',
@@ -970,7 +904,6 @@ def build():
         smoothFactor: 1.5
     }}).addTo(map);
 
-    // Travelled route (entries we have so far)
     var markers = {map_markers_json};
     if (markers.length > 1) {{
         var travelled = markers.map(function(m) {{ return [m.lat, m.lng]; }});
@@ -982,7 +915,6 @@ def build():
         }}).addTo(map);
     }}
 
-    // Custom marker icon
     var pinIcon = L.divIcon({{
         className: '',
         html: '<div style="width:16px;height:16px;background:#C94C3D;border:3px solid #F2EDE4;border-radius:50%;box-shadow:0 2px 10px rgba(0,0,0,0.35);"></div>',
@@ -991,7 +923,6 @@ def build():
         popupAnchor: [0, -12]
     }});
 
-    // Route stop icon (not yet visited)
     var stopIcon = L.divIcon({{
         className: '',
         html: '<div style="width:10px;height:10px;background:rgba(139,90,60,0.3);border:2px solid #8B5A3C;border-radius:50%;"></div>',
@@ -999,11 +930,9 @@ def build():
         iconAnchor: [5, 5]
     }});
 
-    // Place hollow markers on future route stops
-    var routeStops = {route_json};
     var visitedKeys = {{}};
     markers.forEach(function(m) {{ visitedKeys[m.lat + ',' + m.lng] = true; }});
-    routeStops.forEach(function(coord) {{
+    route.forEach(function(coord) {{
         var key = coord[0] + ',' + coord[1];
         if (!visitedKeys[key]) {{
             visitedKeys[key] = true;
@@ -1011,7 +940,6 @@ def build():
         }}
     }});
 
-    // Entry markers with popups
     markers.forEach(function(loc) {{
         var popupLines = '<div class="popup-title">' + loc.name + '</div>';
         loc.entries.forEach(function(e) {{
@@ -1022,11 +950,13 @@ def build():
             .addTo(map);
     }});
 }})();
-</script>
-</body>
-</html>"""
+</script>"""
+
+    leaflet_css = '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />\n'
+    landing_html = html_page("Ferðadagbók", landing_body, head_extra=leaflet_css, scripts=map_script)
     (DOCS_DIR / "index.html").write_text(landing_html)
 
+    _save_geocache()
     print(f"Built {len(entries)} entries + blog + gallery + landing → docs/")
 
 
