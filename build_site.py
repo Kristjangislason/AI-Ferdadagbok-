@@ -612,6 +612,36 @@ article figcaption {
     font-style: italic;
 }
 
+/* --- Subpage navigation --- */
+
+.subnav {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 48px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(166, 115, 72, 0.15);
+}
+
+.subnav a {
+    font-size: 14px;
+    color: var(--text-muted);
+    text-decoration: none;
+    padding: 6px 16px;
+    border-radius: 20px;
+    transition: all 0.2s ease;
+    letter-spacing: 0.02em;
+}
+
+.subnav a:hover {
+    color: var(--text);
+    background: rgba(242, 237, 228, 0.08);
+}
+
+.subnav a.active {
+    color: var(--text);
+    background: rgba(166, 115, 72, 0.2);
+}
+
 /* --- Ambient glow decoration --- */
 
 body::before {
@@ -658,11 +688,29 @@ body::after {
 """
 
 
-def html_page(title, body, back_to=None):
+SUBNAV_PAGES = [
+    ("index.html", "Home"),
+    ("blog.html", "Journal"),
+    ("gallery.html", "Photos"),
+    ("videos.html", "Videos"),
+]
+
+
+def html_page(title, body, back_to=None, active_page=None):
     if back_to:
         back_nav = f'<nav class="back"><a href="{back_to}">&larr; Back</a></nav>'
     else:
         back_nav = ""
+
+    if active_page:
+        nav_links = ""
+        for href, label in SUBNAV_PAGES:
+            cls = ' class="active"' if href == active_page else ""
+            nav_links += f'<a href="{href}"{cls}>{label}</a>\n'
+        subnav = f'<nav class="subnav">{nav_links}</nav>'
+    else:
+        subnav = ""
+
     return f"""\
 <!DOCTYPE html>
 <html lang="en">
@@ -673,11 +721,13 @@ def html_page(title, body, back_to=None):
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500&display=swap" rel="stylesheet">
-<style>{BASE_STYLE}</style>
+<style>html {{ background: #1F2E28; }}</style>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="container">
 <header><a href="index.html"><h1>Fer&eth;adagb&oacute;k</h1><p>Indonesia &middot; 2026</p></a></header>
+{subnav}
 {back_nav}
 {body}
 </div>
@@ -726,6 +776,9 @@ def build():
         shutil.rmtree(DOCS_DIR)
     DOCS_DIR.mkdir()
 
+    # Write CSS to a separate cached file
+    (DOCS_DIR / "style.css").write_text(BASE_STYLE)
+
     # Copy images to docs/images/ if any exist
     docs_images = DOCS_DIR / "images"
     if IMAGES_DIR.exists() and any(IMAGES_DIR.iterdir()):
@@ -752,7 +805,7 @@ def build():
             f'</a></li>\n'
         )
     blog_body = f'<h2 class="section-heading">Journal</h2>\n<ul class="entry-list">{items}</ul>'
-    blog_page = html_page("Ferðadagbók — Blog", blog_body, back_to="index.html")
+    blog_page = html_page("Ferðadagbók — Blog", blog_body, active_page="blog.html")
     (DOCS_DIR / "blog.html").write_text(blog_page)
 
     # Build gallery page (all images from entries)
@@ -793,7 +846,7 @@ def build():
         gallery_body = '<p class="gallery-empty">No photos yet — they\'ll appear here as the journey unfolds.</p>'
     else:
         gallery_body = f'<h2 class="section-heading">Photos</h2>\n<div class="gallery-grid">{gallery_items}</div>'
-    gallery_page = html_page("Ferðadagbók — Photos", gallery_body, back_to="index.html")
+    gallery_page = html_page("Ferðadagbók — Photos", gallery_body, active_page="gallery.html")
     (DOCS_DIR / "gallery.html").write_text(gallery_page)
 
     # Build videos page
@@ -825,7 +878,7 @@ def build():
             )
         videos_body = f'<h2 class="section-heading">Videos</h2>\n<div class="video-grid">{video_items}</div>'
 
-    videos_page = html_page("Ferðadagbók — Videos", videos_body, back_to="index.html")
+    videos_page = html_page("Ferðadagbók — Videos", videos_body, active_page="videos.html")
     (DOCS_DIR / "videos.html").write_text(videos_page)
     video_count = len(videos)
 
@@ -860,7 +913,8 @@ def build():
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<style>{BASE_STYLE}</style>
+<style>html {{ background: #1F2E28; }}</style>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="container">
