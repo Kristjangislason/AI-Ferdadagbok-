@@ -25,30 +25,31 @@ IMAGES_DIR = Path(__file__).parent / "images"
 IMAGES_DIR.mkdir(exist_ok=True)
 
 SYSTEM_PROMPT = """\
-You are a travel journal editor. The user gives you rough travel notes and you \
-clean them up into a well-structured journal entry in Markdown.
+You are a copy editor, NOT a writer. The user gives you their travel notes \
+and you return them cleaned up. You must NEVER generate new text.
 
-Critical rule: PRESERVE THE AUTHOR'S OWN WORDS. Do not rewrite, embellish, \
-or substitute words. Your job is only to:
+YOUR ONLY JOB:
 - Fix grammar, spelling, and punctuation
-- Improve structure and formatting (paragraphs, line breaks)
-- Fix indentation and Markdown formatting
-- Keep the author's voice, word choices, and phrasing exactly as they are
-- Always write in the same language as the notes — if the notes are in \
-Icelandic, the entry must be in Icelandic; if in English, write in English
+- Improve paragraph structure and line breaks
+- Fix Markdown formatting
+- Add a heading: # Month Day — Short Title
 
-Rules:
-- Never invent facts or add descriptive language that isn't in the notes
-- Never swap out words for synonyms or "better" alternatives
-- Preserve any image lines (![caption](path)) exactly as they are — do not move, remove, or alter them
-- Start with a heading: # Month Day — Short Title
-- Use the date and location from the header the user provides
-- The trip year is 2026 — always use 2026 for dates unless the notes explicitly say otherwise
+ABSOLUTE RULES:
+- Output ONLY the author's own words. Do not add sentences, descriptions, \
+dialogue, or details that are not in the original notes.
+- Do not expand, elaborate, or flesh out the notes. If the notes are short, \
+the output must be short.
+- Do not swap words for synonyms. Do not rewrite phrases in your own style.
+- Keep the same language as the notes (Icelandic stays Icelandic, English \
+stays English).
+- Preserve any image lines (![caption](path)) exactly as they are.
+- The trip year is 2026 — always use 2026 for dates.
 
-After the journal entry, on a new line, output exactly:
+The output should be the cleaned-up notes with a heading, nothing more. \
+Then on a new line at the very end, output exactly:
 FILENAME: <yyyy-mm-dd-short-slug.md>
 
-The slug should be lowercase, hyphenated, descriptive (e.g. 2026-05-01-first-night-in-jakarta.md).
+The slug should be lowercase, hyphenated, descriptive (e.g. 2026-05-09-rainforest.md).
 """
 
 
@@ -179,7 +180,7 @@ def write_journal_entry(notes):
     """Send notes to Claude and get back a polished journal entry."""
     response = anthropic.messages.create(
         model="claude-sonnet-4-6",
-        max_tokens=1024,
+        max_tokens=4096,
         system=SYSTEM_PROMPT,
         messages=[{"role": "user", "content": notes}],
     )
@@ -187,11 +188,19 @@ def write_journal_entry(notes):
     output = response.content[0].text
 
     match = re.search(r"FILENAME:\s*(.+\.md)", output)
-    if not match:
-        raise ValueError(f"Claude didn't return a FILENAME line. Output:\n{output}")
-
-    filename = re.sub(r"[^0-9a-zA-Z._-]", "", match.group(1).strip())
-    entry_text = output[: match.start()].strip()
+    if match:
+        filename = re.sub(r"[^0-9a-zA-Z._-]", "", match.group(1).strip())
+        entry_text = output[: match.start()].strip()
+    else:
+        # Fallback: generate filename from the heading
+        print("  Warning: Claude didn't return a FILENAME line, generating one.")
+        entry_text = output.strip()
+        heading_match = re.search(r"^#\s+(.+)$", entry_text, re.MULTILINE)
+        if heading_match:
+            slug = re.sub(r"[^a-z0-9]+", "-", heading_match.group(1).lower()).strip("-")
+            filename = f"2026-{slug}.md"
+        else:
+            filename = "2026-untitled.md"
 
     return filename, entry_text
 
