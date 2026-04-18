@@ -3,15 +3,130 @@ Build a minimal static blog from Markdown journal entries.
 Reads entries/ and outputs a complete site to docs/.
 """
 
+import json
 import re
 import shutil
+import time
 from pathlib import Path
 
 import markdown
+import requests
 
 ENTRIES_DIR = Path(__file__).parent / "entries"
 IMAGES_DIR = Path(__file__).parent / "images"
 DOCS_DIR = Path(__file__).parent / "docs"
+
+# The planned route as coordinate pairs (for the route line on the map)
+ROUTE_COORDS = [
+    [-6.2088, 106.8456],   # Jakarta
+    [-2.7833, 111.9000],   # Tanjung Puting, Borneo
+    [-5.1477, 119.4327],   # Makassar, Sulawesi
+    [-2.9667, 119.9000],   # Tana Toraja, Sulawesi
+    [-5.1477, 119.4327],   # Makassar (back)
+    [-8.4967, 119.8889],   # Labuan Bajo, Flores
+    [-8.7914, 120.9722],   # Bajawa
+    [-8.8488, 121.6608],   # Ende
+    [-6.2088, 106.8456],   # Jakarta (return)
+]
+
+GEOCACHE_PATH = Path(__file__).parent / ".geocache.json"
+
+
+def load_geocache():
+    """Load cached geocoding results from disk."""
+    if GEOCACHE_PATH.exists():
+        return json.loads(GEOCACHE_PATH.read_text())
+    return {}
+
+
+def save_geocache(cache):
+    """Save geocoding results to disk."""
+    GEOCACHE_PATH.write_text(json.dumps(cache, indent=2, ensure_ascii=False))
+
+
+def geocode(place_name):
+    """Look up coordinates for a place name using OpenStreetMap Nominatim.
+
+    Results are cached in .geocache.json so we only query once per place.
+    """
+    cache = load_geocache()
+    key = place_name.lower().strip()
+
+    if key in cache:
+        return cache[key]
+
+    # Query Nominatim — bounded to Indonesia for relevance
+    resp = requests.get(
+        "https://nominatim.openstreetmap.org/search",
+        params={
+            "q": f"{place_name}, Indonesia",
+            "format": "json",
+            "limit": 1,
+        },
+        headers={"User-Agent": "Ferdadagbok-TravelJournal/1.0"},
+        timeout=10,
+    )
+
+    results = resp.json()
+    if results:
+        loc = {
+            "lat": float(results[0]["lat"]),
+            "lng": float(results[0]["lon"]),
+            "name": place_name,
+        }
+        cache[key] = loc
+        save_geocache(cache)
+        # Be polite to Nominatim — max 1 request per second
+        time.sleep(1)
+        return loc
+
+    # Cache misses too, so we don't re-query
+    cache[key] = None
+    save_geocache(cache)
+    return None
+
+
+def extract_place_name(title):
+    """Try to pull a place name from an entry title.
+
+    Titles look like "May 7 — First Day in Jakarta" or
+    "May 5 — Fyrsta kvöldið í Jakarta". We grab the last
+    significant word(s) after common prepositions.
+    """
+    # Strip the date prefix: "May 7 — " or "May 3rd — "
+    match = re.search(r"—\s*(.+)$", title)
+    if not match:
+        match = re.search(r"-\s*(.+)$", title)
+    if not match:
+        return None
+
+    text = match.group(1).strip()
+
+    # Look for place after "in", "at", "to", "from", "í" (Icelandic)
+    place_match = re.search(r"\b(?:in|at|to|from|near|around|í|til|frá)\s+(.+)$", text, re.IGNORECASE)
+    if place_match:
+        return place_match.group(1).strip()
+
+    # Fallback: use the last capitalized word(s) as a place guess
+    words = text.split()
+    place_words = []
+    for word in reversed(words):
+        if word[0].isupper() or (place_words and word.lower() in ("the", "of", "el", "la")):
+            place_words.insert(0, word)
+        else:
+            break
+    if place_words:
+        return " ".join(place_words)
+
+    return None
+
+
+def locate_entry(entry):
+    """Try to find coordinates for an entry by geocoding its title."""
+    place = extract_place_name(entry["title"])
+    if not place:
+        return None
+    return geocode(place)
 
 BASE_STYLE = """\
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -379,6 +494,56 @@ article figcaption {
     font-style: italic;
 }
 
+/* --- Map --- */
+
+.map-section {
+    margin-bottom: 64px;
+}
+
+.map-container {
+    width: 100%;
+    height: 380px;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 6px 28px rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(166, 115, 72, 0.2);
+}
+
+.map-container .leaflet-popup-content-wrapper {
+    background: #1F2E28;
+    color: #F2EDE4;
+    border-radius: 10px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    border: 1px solid rgba(166, 115, 72, 0.25);
+}
+
+.map-container .leaflet-popup-tip {
+    background: #1F2E28;
+}
+
+.map-container .leaflet-popup-content a {
+    color: #D4A82A;
+    text-decoration: none;
+}
+
+.map-container .leaflet-popup-content a:hover {
+    text-decoration: underline;
+}
+
+.map-container .leaflet-popup-content .popup-title {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 17px;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.map-container .leaflet-popup-content .popup-date {
+    font-size: 12px;
+    color: #B8B0A4;
+}
+
 /* --- Ambient glow decoration --- */
 
 body::before {
@@ -420,6 +585,7 @@ body::after {
     .landing-nav .nav-number { font-size: 36px; margin-bottom: 12px; }
     .gallery-grid { columns: 1; }
     .section-heading { font-size: 26px; }
+    .map-container { height: 280px; }
 }
 """
 
@@ -562,7 +728,24 @@ def build():
     gallery_page = html_page("Ferðadagbók — Photos", gallery_body, back_to="index.html")
     (DOCS_DIR / "gallery.html").write_text(gallery_page)
 
-    # Build landing page (index) — custom layout, no shared header
+    # Build map data — group entries by location
+    location_groups = {}
+    for entry in entries:
+        loc = locate_entry(entry)
+        if loc:
+            key = (loc["lat"], loc["lng"])
+            if key not in location_groups:
+                location_groups[key] = {"name": loc["name"], "lat": loc["lat"], "lng": loc["lng"], "entries": []}
+            location_groups[key]["entries"].append({
+                "title": entry["title"],
+                "date": entry["date"],
+                "slug": entry["slug"],
+            })
+
+    map_markers_json = json.dumps(list(location_groups.values()))
+    route_json = json.dumps(ROUTE_COORDS)
+
+    # Build landing page (index) — custom layout with map
     entry_count = len(entries)
     image_count = len(seen_srcs)
     landing_html = f"""\
@@ -575,6 +758,7 @@ def build():
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>{BASE_STYLE}</style>
 </head>
 <body>
@@ -585,6 +769,9 @@ def build():
 <div class="route">Jakarta &rarr; Borneo &rarr; Sulawesi &rarr; Flores &rarr; Jakarta</div>
 </div>
 <hr class="landing-divider">
+<div class="map-section">
+<div id="map" class="map-container"></div>
+</div>
 <ul class="landing-nav">
 <li><a href="blog.html">
 <div class="nav-number">I</div>
@@ -598,6 +785,84 @@ def build():
 </a></li>
 </ul>
 </div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function() {{
+    var map = L.map('map', {{
+        zoomControl: false,
+        attributionControl: false
+    }}).setView([-4.5, 115.5], 5);
+
+    L.control.zoom({{ position: 'bottomright' }}).addTo(map);
+
+    L.tileLayer('https://{{s}}.basemaps.cartocdn.com/rastertiles/voyager/{{z}}/{{x}}/{{y}}{{r}}.png', {{
+        maxZoom: 17,
+        subdomains: 'abcd'
+    }}).addTo(map);
+
+    // Route line
+    var route = {route_json};
+    L.polyline(route, {{
+        color: '#8B5A3C',
+        weight: 2.5,
+        opacity: 0.4,
+        dashArray: '8, 8',
+        smoothFactor: 1.5
+    }}).addTo(map);
+
+    // Travelled route (entries we have so far)
+    var markers = {map_markers_json};
+    if (markers.length > 1) {{
+        var travelled = markers.map(function(m) {{ return [m.lat, m.lng]; }});
+        L.polyline(travelled, {{
+            color: '#C94C3D',
+            weight: 3,
+            opacity: 0.7,
+            smoothFactor: 1.5
+        }}).addTo(map);
+    }}
+
+    // Custom marker icon
+    var pinIcon = L.divIcon({{
+        className: '',
+        html: '<div style="width:16px;height:16px;background:#C94C3D;border:3px solid #F2EDE4;border-radius:50%;box-shadow:0 2px 10px rgba(0,0,0,0.35);"></div>',
+        iconSize: [16, 16],
+        iconAnchor: [8, 8],
+        popupAnchor: [0, -12]
+    }});
+
+    // Route stop icon (not yet visited)
+    var stopIcon = L.divIcon({{
+        className: '',
+        html: '<div style="width:10px;height:10px;background:rgba(139,90,60,0.3);border:2px solid #8B5A3C;border-radius:50%;"></div>',
+        iconSize: [10, 10],
+        iconAnchor: [5, 5]
+    }});
+
+    // Place hollow markers on future route stops
+    var routeStops = {route_json};
+    var visitedKeys = {{}};
+    markers.forEach(function(m) {{ visitedKeys[m.lat + ',' + m.lng] = true; }});
+    routeStops.forEach(function(coord) {{
+        var key = coord[0] + ',' + coord[1];
+        if (!visitedKeys[key]) {{
+            visitedKeys[key] = true;
+            L.marker(coord, {{ icon: stopIcon }}).addTo(map);
+        }}
+    }});
+
+    // Entry markers with popups
+    markers.forEach(function(loc) {{
+        var popupLines = '<div class="popup-title">' + loc.name + '</div>';
+        loc.entries.forEach(function(e) {{
+            popupLines += '<a href="' + e.slug + '.html"><span class="popup-date">' + e.date + '</span> ' + e.title.replace(/.*?—\\s*/, '') + '</a><br>';
+        }});
+        L.marker([loc.lat, loc.lng], {{ icon: pinIcon }})
+            .bindPopup(popupLines, {{ maxWidth: 240 }})
+            .addTo(map);
+    }});
+}})();
+</script>
 </body>
 </html>"""
     (DOCS_DIR / "index.html").write_text(landing_html)

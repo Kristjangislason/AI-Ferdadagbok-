@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
@@ -372,6 +373,56 @@ article figcaption {
     font-style: italic;
 }
 
+/* --- Map --- */
+
+.map-section {
+    margin-bottom: 64px;
+}
+
+.map-container {
+    width: 100%;
+    height: 380px;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 6px 28px rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(166, 115, 72, 0.2);
+}
+
+.map-container .leaflet-popup-content-wrapper {
+    background: #1F2E28;
+    color: #F2EDE4;
+    border-radius: 10px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    border: 1px solid rgba(166, 115, 72, 0.25);
+}
+
+.map-container .leaflet-popup-tip {
+    background: #1F2E28;
+}
+
+.map-container .leaflet-popup-content a {
+    color: #D4A82A;
+    text-decoration: none;
+}
+
+.map-container .leaflet-popup-content a:hover {
+    text-decoration: underline;
+}
+
+.map-container .leaflet-popup-content .popup-title {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 17px;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.map-container .leaflet-popup-content .popup-date {
+    font-size: 12px;
+    color: #B8B0A4;
+}
+
 /* --- Ambient glow decoration --- */
 
 body::before {
@@ -413,6 +464,7 @@ body::after {
     .landing-nav .nav-number { font-size: 36px; margin-bottom: 12px; }
     .gallery-grid { columns: 1; }
     .section-heading { font-size: 26px; }
+    .map-container { height: 280px; }
 }
 </style>
 </head>
@@ -424,6 +476,9 @@ body::after {
 <div class="route">Jakarta &rarr; Borneo &rarr; Sulawesi &rarr; Flores &rarr; Jakarta</div>
 </div>
 <hr class="landing-divider">
+<div class="map-section">
+<div id="map" class="map-container"></div>
+</div>
 <ul class="landing-nav">
 <li><a href="blog.html">
 <div class="nav-number">I</div>
@@ -437,5 +492,83 @@ body::after {
 </a></li>
 </ul>
 </div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function() {
+    var map = L.map('map', {
+        zoomControl: false,
+        attributionControl: false
+    }).setView([-4.5, 115.5], 5);
+
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        maxZoom: 17,
+        subdomains: 'abcd'
+    }).addTo(map);
+
+    // Route line
+    var route = [[-6.2088, 106.8456], [-2.7833, 111.9], [-5.1477, 119.4327], [-2.9667, 119.9], [-5.1477, 119.4327], [-8.4967, 119.8889], [-8.7914, 120.9722], [-8.8488, 121.6608], [-6.2088, 106.8456]];
+    L.polyline(route, {
+        color: '#8B5A3C',
+        weight: 2.5,
+        opacity: 0.4,
+        dashArray: '8, 8',
+        smoothFactor: 1.5
+    }).addTo(map);
+
+    // Travelled route (entries we have so far)
+    var markers = [{"name": "Jakarta", "lat": -6.1754049, "lng": 106.827168, "entries": [{"title": "May 1 \u2014 First Night in Jakarta", "date": "2025-05-01", "slug": "2025-05-01-first-night-in-jakarta"}, {"title": "May 2 \u2014 First Night in Jakarta", "date": "2025-05-02", "slug": "2025-05-02-first-night-in-jakarta"}, {"title": "May 3rd \u2014 First Night in Jakarta", "date": "2025-05-03", "slug": "2025-05-03-first-night-in-jakarta"}, {"title": "May 4 \u2014 First Night in Jakarta", "date": "2025-05-04", "slug": "2025-05-04-first-night-in-jakarta"}, {"title": "May 5 \u2014 Fyrsta kv\u00f6ldi\u00f0 \u00ed Jakarta", "date": "2025-05-05", "slug": "2025-05-05-fyrsta-kvoldid-i-jakarta"}, {"title": "May 6 \u2014 First Day in Jakarta", "date": "2025-05-06", "slug": "2025-05-06-first-day-in-jakarta"}, {"title": "May 7 \u2014 First Day in Jakarta", "date": "2025-05-07", "slug": "2025-05-07-first-day-in-jakarta"}, {"title": "May 8 \u2014 Fyrsti dagurinn \u00ed Jakarta", "date": "2026-05-08", "slug": "2026-05-08-fyrsti-dagurinn-i-jakarta"}]}];
+    if (markers.length > 1) {
+        var travelled = markers.map(function(m) { return [m.lat, m.lng]; });
+        L.polyline(travelled, {
+            color: '#C94C3D',
+            weight: 3,
+            opacity: 0.7,
+            smoothFactor: 1.5
+        }).addTo(map);
+    }
+
+    // Custom marker icon
+    var pinIcon = L.divIcon({
+        className: '',
+        html: '<div style="width:16px;height:16px;background:#C94C3D;border:3px solid #F2EDE4;border-radius:50%;box-shadow:0 2px 10px rgba(0,0,0,0.35);"></div>',
+        iconSize: [16, 16],
+        iconAnchor: [8, 8],
+        popupAnchor: [0, -12]
+    });
+
+    // Route stop icon (not yet visited)
+    var stopIcon = L.divIcon({
+        className: '',
+        html: '<div style="width:10px;height:10px;background:rgba(139,90,60,0.3);border:2px solid #8B5A3C;border-radius:50%;"></div>',
+        iconSize: [10, 10],
+        iconAnchor: [5, 5]
+    });
+
+    // Place hollow markers on future route stops
+    var routeStops = [[-6.2088, 106.8456], [-2.7833, 111.9], [-5.1477, 119.4327], [-2.9667, 119.9], [-5.1477, 119.4327], [-8.4967, 119.8889], [-8.7914, 120.9722], [-8.8488, 121.6608], [-6.2088, 106.8456]];
+    var visitedKeys = {};
+    markers.forEach(function(m) { visitedKeys[m.lat + ',' + m.lng] = true; });
+    routeStops.forEach(function(coord) {
+        var key = coord[0] + ',' + coord[1];
+        if (!visitedKeys[key]) {
+            visitedKeys[key] = true;
+            L.marker(coord, { icon: stopIcon }).addTo(map);
+        }
+    });
+
+    // Entry markers with popups
+    markers.forEach(function(loc) {
+        var popupLines = '<div class="popup-title">' + loc.name + '</div>';
+        loc.entries.forEach(function(e) {
+            popupLines += '<a href="' + e.slug + '.html"><span class="popup-date">' + e.date + '</span> ' + e.title.replace(/.*?—\s*/, '') + '</a><br>';
+        });
+        L.marker([loc.lat, loc.lng], { icon: pinIcon })
+            .bindPopup(popupLines, { maxWidth: 240 })
+            .addTo(map);
+    });
+})();
+</script>
 </body>
 </html>
