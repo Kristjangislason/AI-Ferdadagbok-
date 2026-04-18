@@ -483,7 +483,7 @@ body::after {
 <li><a href="blog.html">
 <div class="nav-number">I</div>
 <div class="nav-label">Journal</div>
-<div class="nav-desc">9 entries from the road</div>
+<div class="nav-desc">10 entries from the road</div>
 </a></li>
 <li><a href="gallery.html">
 <div class="nav-number">II</div>
@@ -518,7 +518,7 @@ body::after {
     }).addTo(map);
 
     // Travelled route (entries we have so far)
-    var markers = [{"name": "Jakarta", "lat": -6.1754049, "lng": 106.827168, "entries": [{"title": "May 1 \u2014 First Night in Jakarta", "date": "2025-05-01", "slug": "2025-05-01-first-night-in-jakarta"}, {"title": "May 2 \u2014 First Night in Jakarta", "date": "2025-05-02", "slug": "2025-05-02-first-night-in-jakarta"}, {"title": "May 3rd \u2014 First Night in Jakarta", "date": "2025-05-03", "slug": "2025-05-03-first-night-in-jakarta"}, {"title": "May 4 \u2014 First Night in Jakarta", "date": "2025-05-04", "slug": "2025-05-04-first-night-in-jakarta"}, {"title": "May 5 \u2014 Fyrsta kv\u00f6ldi\u00f0 \u00ed Jakarta", "date": "2025-05-05", "slug": "2025-05-05-fyrsta-kvoldid-i-jakarta"}, {"title": "May 6 \u2014 First Day in Jakarta", "date": "2025-05-06", "slug": "2025-05-06-first-day-in-jakarta"}, {"title": "May 7 \u2014 First Day in Jakarta", "date": "2025-05-07", "slug": "2025-05-07-first-day-in-jakarta"}, {"title": "May 8 \u2014 Fyrsti dagurinn \u00ed Jakarta", "date": "2026-05-08", "slug": "2026-05-08-fyrsti-dagurinn-i-jakarta"}]}];
+    var markers = [{"name": "Jakarta", "lat": -6.1754049, "lng": 106.827168, "entries": [{"title": "May 1 \u2014 First Night in Jakarta", "date": "2025-05-01", "slug": "2025-05-01-first-night-in-jakarta"}, {"title": "May 2 \u2014 First Night in Jakarta", "date": "2025-05-02", "slug": "2025-05-02-first-night-in-jakarta"}, {"title": "May 3rd \u2014 First Night in Jakarta", "date": "2025-05-03", "slug": "2025-05-03-first-night-in-jakarta"}, {"title": "May 4 \u2014 First Night in Jakarta", "date": "2025-05-04", "slug": "2025-05-04-first-night-in-jakarta"}, {"title": "May 5 \u2014 Fyrsta kv\u00f6ldi\u00f0 \u00ed Jakarta", "date": "2025-05-05", "slug": "2025-05-05-fyrsta-kvoldid-i-jakarta"}, {"title": "May 6 \u2014 First Day in Jakarta", "date": "2025-05-06", "slug": "2025-05-06-first-day-in-jakarta"}, {"title": "May 7 \u2014 First Day in Jakarta", "date": "2025-05-07", "slug": "2025-05-07-first-day-in-jakarta"}, {"title": "May 8 \u2014 Fyrsti dagurinn \u00ed Jakarta", "date": "2026-05-08", "slug": "2026-05-08-fyrsti-dagurinn-i-jakarta"}]}, {"name": "Tanjung Puting", "lat": -3.5038484, "lng": 111.7705804, "entries": [{"title": "May 10 \u2014 Dagur \u00ed Tanjung Puting", "date": "2026-05-10", "slug": "2026-05-10-tanjung-puting"}]}];
     if (markers.length > 1) {
         var travelled = markers.map(function(m) { return [m.lat, m.lng]; });
         L.polyline(travelled, {

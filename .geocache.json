@@ -4,5 +4,10 @@
     "lng": 106.827168,
     "name": "Jakarta"
   },
-  "regnskógurinn": null
+  "regnskógurinn": null,
+  "tanjung puting": {
+    "lat": -3.5038484,
+    "lng": 111.7705804,
+    "name": "Tanjung Puting"
+  }
 }
