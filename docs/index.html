@@ -6,41 +6,33 @@
 <title>Ferðadagbók</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Inter:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<style>html { background: #1F2E28; }</style>
+<style>html { background: #131E17; }</style>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="container">
-<header><a href="index.html"><h1>Fer&eth;adagb&oacute;k</h1><p>Indonesia &middot; 2026</p></a></header>
-
-<div class="landing-header">
-<h1>Fer&eth;adagb&oacute;k</h1>
-<div class="subtitle">Indonesia &middot; 2026</div>
-<div class="route">Jakarta &rarr; Borneo &rarr; Sulawesi &rarr; Flores &rarr; Jakarta</div>
+<div class="topbar">
+<a href="index.html" class="site-name">Fer&eth;adagb&oacute;k</a>
+<nav><a href="blog.html">Journal</a><a href="gallery.html">Photos</a><a href="videos.html">Videos</a></nav>
 </div>
-<hr class="landing-divider">
+<div class="landing-hero">
+<div class="hero-title">A journey through Indonesia</div>
+<div class="hero-route">Jakarta &rarr; Borneo &rarr; Sulawesi &rarr; Flores &rarr; Jakarta</div>
+<div class="hero-dates">May 1 &ndash; June 6, 2026</div>
+</div>
 <div class="map-section">
+<div class="map-wrap">
 <div id="map" class="map-container"></div>
+<div class="map-hint">Click the pins to explore entries</div>
 </div>
-<ul class="landing-nav">
-<li><a href="blog.html">
-<div class="nav-number">I</div>
-<div class="nav-label">Journal</div>
-<div class="nav-desc">10 entries from the road</div>
-</a></li>
-<li><a href="gallery.html">
-<div class="nav-number">II</div>
-<div class="nav-label">Photos</div>
-<div class="nav-desc">4 snapshots along the way</div>
-</a></li>
-<li><a href="videos.html">
-<div class="nav-number">III</div>
-<div class="nav-label">Videos</div>
-<div class="nav-desc">0 drone shots from above</div>
-</a></li>
-</ul>
+<div class="map-stats">
+<span>10 entries</span>
+<span>4 photos</span>
+<span>0 videos</span>
+</div>
+</div>
 </div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
@@ -52,17 +44,19 @@
 
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        maxZoom: 17,
-        subdomains: 'abcd'
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 13
+    }).addTo(map);
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Reference/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 13
     }).addTo(map);
 
     var route = [[-6.2088, 106.8456], [-2.7833, 111.9], [-5.1477, 119.4327], [-2.9667, 119.9], [-5.1477, 119.4327], [-8.4967, 119.8889], [-8.7914, 120.9722], [-8.8488, 121.6608], [-6.2088, 106.8456]];
     L.polyline(route, {
-        color: '#8B5A3C',
-        weight: 2.5,
-        opacity: 0.4,
-        dashArray: '8, 8',
+        color: '#C4944A',
+        weight: 2,
+        opacity: 0.45,
+        dashArray: '6, 8',
         smoothFactor: 1.5
     }).addTo(map);
 
@@ -70,24 +64,24 @@
     if (markers.length > 1) {
         var travelled = markers.map(function(m) { return [m.lat, m.lng]; });
         L.polyline(travelled, {
-            color: '#C94C3D',
-            weight: 3,
-            opacity: 0.7,
+            color: '#D45D4C',
+            weight: 2.5,
+            opacity: 0.8,
             smoothFactor: 1.5
         }).addTo(map);
     }
 
     var pinIcon = L.divIcon({
-        className: '',
-        html: '<div style="width:16px;height:16px;background:#C94C3D;border:3px solid #F2EDE4;border-radius:50%;box-shadow:0 2px 10px rgba(0,0,0,0.35);"></div>',
-        iconSize: [16, 16],
-        iconAnchor: [8, 8],
-        popupAnchor: [0, -12]
+        className: 'map-pin',
+        html: '<div class="pin-dot"></div><div class="pin-pulse"></div>',
+        iconSize: [20, 20],
+        iconAnchor: [10, 10],
+        popupAnchor: [0, -14]
     });
 
     var stopIcon = L.divIcon({
-        className: '',
-        html: '<div style="width:10px;height:10px;background:rgba(139,90,60,0.3);border:2px solid #8B5A3C;border-radius:50%;"></div>',
+        className: 'map-stop',
+        html: '<div class="stop-dot"></div>',
         iconSize: [10, 10],
         iconAnchor: [5, 5]
     });
