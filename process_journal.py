@@ -43,11 +43,12 @@ Rules:
 - Preserve any image lines (![caption](path)) exactly as they are — do not move, remove, or alter them
 - Start with a heading: # Month Day — Short Title
 - Use the date and location from the header the user provides
+- The trip year is 2026 — always use 2026 for dates unless the notes explicitly say otherwise
 
 After the journal entry, on a new line, output exactly:
 FILENAME: <yyyy-mm-dd-short-slug.md>
 
-The slug should be lowercase, hyphenated, descriptive (e.g. 2025-05-01-first-night-in-jakarta.md).
+The slug should be lowercase, hyphenated, descriptive (e.g. 2026-05-01-first-night-in-jakarta.md).
 """
 
 
