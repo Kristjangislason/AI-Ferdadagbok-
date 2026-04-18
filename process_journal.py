@@ -5,10 +5,11 @@ Reads notes from ## TO PROCESS, sends each to Claude for writing,
 saves as Markdown, then moves processed notes to ## DONE.
 """
 
+import hashlib
 import os
 import re
 from pathlib import Path
-
+import requests
 from anthropic import Anthropic
 from dotenv import load_dotenv
 from notion_client import Client
@@ -20,15 +21,26 @@ notion = Client(auth=os.environ["NOTION_API_KEY"])
 PAGE_ID = os.environ["NOTION_PAGE_ID"]
 ENTRIES_DIR = Path(__file__).parent / "entries"
 ENTRIES_DIR.mkdir(exist_ok=True)
+IMAGES_DIR = Path(__file__).parent / "images"
+IMAGES_DIR.mkdir(exist_ok=True)
 
 SYSTEM_PROMPT = """\
-You are a travel journal writer. The user gives you rough travel notes and you \
-turn them into a polished, vivid, warm journal entry in Markdown.
+You are a travel journal editor. The user gives you rough travel notes and you \
+clean them up into a well-structured journal entry in Markdown.
+
+Critical rule: PRESERVE THE AUTHOR'S OWN WORDS. Do not rewrite, embellish, \
+or substitute words. Your job is only to:
+- Fix grammar, spelling, and punctuation
+- Improve structure and formatting (paragraphs, line breaks)
+- Fix indentation and Markdown formatting
+- Keep the author's voice, word choices, and phrasing exactly as they are
+- Always write in the same language as the notes — if the notes are in \
+Icelandic, the entry must be in Icelandic; if in English, write in English
 
 Rules:
-- Write in first person, present-tense feeling (as if reliving the day)
-- Never invent facts — only use what the notes provide
-- Keep it concise but evocative — aim for 150–300 words
+- Never invent facts or add descriptive language that isn't in the notes
+- Never swap out words for synonyms or "better" alternatives
+- Preserve any image lines (![caption](path)) exactly as they are — do not move, remove, or alter them
 - Start with a heading: # Month Day — Short Title
 - Use the date and location from the header the user provides
 
@@ -106,11 +118,55 @@ def split_entries_by_headers(blocks):
     return entries
 
 
-def entry_blocks_to_text(header, blocks):
-    """Convert a header and its blocks to plain text for Claude."""
+def download_image(url, date_prefix):
+    """Download an image from Notion and save it locally. Returns the local filename."""
+    resp = requests.get(url, timeout=30)
+    resp.raise_for_status()
+
+    # Determine extension from content type or URL
+    content_type = resp.headers.get("content-type", "")
+    if "png" in content_type:
+        ext = ".png"
+    elif "gif" in content_type:
+        ext = ".gif"
+    elif "webp" in content_type:
+        ext = ".webp"
+    else:
+        ext = ".jpg"
+
+    # Use a hash of the URL for a stable, unique filename
+    url_hash = hashlib.sha256(url.encode()).hexdigest()[:12]
+    filename = f"{date_prefix}{url_hash}{ext}"
+    filepath = IMAGES_DIR / filename
+    filepath.write_bytes(resp.content)
+    return filename
+
+
+def entry_blocks_to_text(header, blocks, date_prefix=""):
+    """Convert a header and its blocks to plain text for Claude.
+
+    Downloads any images and inserts Markdown image references.
+    """
     lines = [f"### {header}"]
     for block in blocks:
         if block["type"] == "heading_3":
+            continue
+        if block["type"] == "image":
+            image_data = block["image"]
+            # Notion images can be "file" (uploaded) or "external" (linked)
+            if image_data["type"] == "file":
+                url = image_data["file"]["url"]
+            else:
+                url = image_data["external"]["url"]
+            # Extract caption if present
+            caption_parts = image_data.get("caption", [])
+            caption = "".join(rt["plain_text"] for rt in caption_parts)
+            try:
+                img_filename = download_image(url, date_prefix)
+                lines.append(f"![{caption}](../images/{img_filename})")
+                print(f"    Downloaded image: {img_filename}")
+            except Exception as e:
+                print(f"    Warning: failed to download image: {e}")
             continue
         text = extract_text(block)
         if text:
@@ -218,9 +274,13 @@ def main():
     for i, (header, blocks) in enumerate(entries, 1):
         print(f"\n[{i}/{len(entries)}] Processing: {header}")
 
-        notes = entry_blocks_to_text(header, blocks)
+        # Extract date from the header (expects format like "May 1 — ..." or "2025-05-01")
+        date_match = re.search(r"(\d{4}-\d{2}-\d{2})", header)
+        date_prefix = date_match.group(1) + "-" if date_match else ""
+        notes = entry_blocks_to_text(header, blocks, date_prefix=date_prefix)
         filename, entry_text = write_journal_entry(notes)
-        date_prefix = filename[:11]  # e.g. "2025-05-01-"
+        if not date_prefix:
+            date_prefix = filename[:11]
 
         # Skip if an entry for this date already exists
         existing = list(ENTRIES_DIR.glob(f"{date_prefix}*"))

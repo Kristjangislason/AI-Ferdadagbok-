@@ -10,6 +10,7 @@ from pathlib import Path
 import markdown
 
 ENTRIES_DIR = Path(__file__).parent / "entries"
+IMAGES_DIR = Path(__file__).parent / "images"
 DOCS_DIR = Path(__file__).parent / "docs"
 
 BASE_STYLE = """\
@@ -119,6 +120,31 @@ nav.back a:hover {
     color: var(--text);
 }
 
+article img {
+    width: 100%;
+    height: auto;
+    border-radius: 4px;
+    margin: 32px 0;
+    display: block;
+}
+
+article figure {
+    margin: 32px 0;
+}
+
+article figure img {
+    margin: 0;
+}
+
+article figcaption {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    color: var(--muted);
+    margin-top: 10px;
+    text-align: center;
+    line-height: 1.5;
+}
+
 @media (max-width: 600px) {
     .container { padding: 48px 20px; }
     header { margin-bottom: 48px; }
@@ -164,9 +190,18 @@ def parse_entry(filepath):
 
     # Convert to HTML (skip the title line, we render it separately)
     body_md = text[title_match.end():].strip() if title_match else text
+    # Rewrite image paths: ../images/ → images/ (entries are in docs/, images in docs/images/)
+    body_md = body_md.replace("](../images/", "](images/")
     body_html = markdown.markdown(body_md)
     # Remove trailing horizontal rules (from leftover --- in Markdown)
     body_html = re.sub(r"(\s*<hr\s*/?>)+\s*$", "", body_html)
+    # Wrap captioned images in <figure>/<figcaption>
+    def _img_to_figure(m):
+        alt, src = m.group(1), m.group(2)
+        if alt:
+            return f'<figure><img src="{src}" alt="{alt}"><figcaption>{alt}</figcaption></figure>'
+        return f'<img src="{src}" alt="">'
+    body_html = re.sub(r'<img\s+alt="([^"]*)"\s+src="([^"]*)"(?:\s*/)?>', _img_to_figure, body_html)
 
     return {
         "title": title,
@@ -180,6 +215,12 @@ def build():
     if DOCS_DIR.exists():
         shutil.rmtree(DOCS_DIR)
     DOCS_DIR.mkdir()
+
+    # Copy images to docs/images/ if any exist
+    docs_images = DOCS_DIR / "images"
+    if IMAGES_DIR.exists() and any(IMAGES_DIR.iterdir()):
+        shutil.copytree(IMAGES_DIR, docs_images)
+        print(f"Copied {len(list(docs_images.iterdir()))} images → docs/images/")
 
     # Gather and sort entries by filename (date)
     entry_files = sorted(ENTRIES_DIR.glob("*.md"))

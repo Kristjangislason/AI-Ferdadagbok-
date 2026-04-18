@@ -2,3 +2,4 @@ anthropic
 markdown
 notion-client
 python-dotenv
+requests
