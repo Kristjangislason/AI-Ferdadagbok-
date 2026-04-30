@@ -17,9 +17,57 @@ IMAGES_DIR = Path(__file__).parent / "images"
 DOCS_DIR = Path(__file__).parent / "docs"
 
 GEOCACHE_PATH = Path(__file__).parent / ".geocache.json"
+YOUTUBE_CACHE_PATH = Path(__file__).parent / ".youtube-cache.json"
 
 
 _geocache = None
+_youtube_cache = None
+
+
+def _load_youtube_cache():
+    global _youtube_cache
+    if _youtube_cache is None:
+        _youtube_cache = json.loads(YOUTUBE_CACHE_PATH.read_text()) if YOUTUBE_CACHE_PATH.exists() else {}
+    return _youtube_cache
+
+
+def _save_youtube_cache():
+    if _youtube_cache is not None:
+        YOUTUBE_CACHE_PATH.write_text(json.dumps(_youtube_cache, indent=2, ensure_ascii=False))
+
+
+def fetch_youtube_meta(video_id):
+    """Look up a YouTube video's title via oEmbed, with disk cache."""
+    cache = _load_youtube_cache()
+    if video_id in cache:
+        return cache[video_id]
+    meta = {"title": "", "author": ""}
+    try:
+        resp = requests.get(
+            "https://www.youtube.com/oembed",
+            params={"url": f"https://www.youtube.com/watch?v={video_id}", "format": "json"},
+            timeout=10,
+        )
+        if resp.status_code == 200:
+            j = resp.json()
+            meta = {"title": j.get("title", ""), "author": j.get("author_name", "")}
+    except Exception:
+        pass
+    cache[video_id] = meta
+    return meta
+
+
+YOUTUBE_SENTINEL_RE = re.compile(r"(?:<p>\s*)?<!--youtube:([\w-]{11})-->(?:\s*</p>)?")
+
+
+def youtube_iframe(video_id):
+    return (
+        '<div class="video-embed">'
+        f'<iframe src="https://www.youtube.com/embed/{video_id}" '
+        'allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" '
+        'allowfullscreen loading="lazy"></iframe>'
+        '</div>'
+    )
 
 
 def _load_geocache():
@@ -611,8 +659,14 @@ article figcaption {
     color: var(--text-dim);
 }
 
-.video-meta .video-location {
+.video-meta .video-location,
+.video-meta a.video-location:visited {
     color: var(--accent);
+    text-decoration: none;
+}
+
+.video-meta a.video-location:hover {
+    text-decoration: underline;
 }
 
 /* --- Responsive --- */
@@ -727,6 +781,9 @@ def parse_entry(filepath):
             return f'<figure><img src="{src}" alt="{alt}"><figcaption>{alt}</figcaption></figure>'
         return f'<img src="{src}" alt="">'
     body_html = re.sub(r'<img\s+alt="([^"]*)"\s+src="([^"]*)"(?:\s*/)?>', _img_to_figure, body_html)
+    # Replace YouTube sentinels with embedded iframes, and remember the IDs
+    youtube_ids = YOUTUBE_SENTINEL_RE.findall(body_html)
+    body_html = YOUTUBE_SENTINEL_RE.sub(lambda m: youtube_iframe(m.group(1)), body_html)
 
     return {
         "title": title,
@@ -734,6 +791,7 @@ def parse_entry(filepath):
         "body_html": body_html,
         "slug": filepath.stem,
         "locations": locations,
+        "youtube_ids": youtube_ids,
     }
 
 
@@ -797,38 +855,62 @@ def build():
     gallery_page = html_page("Ferðadagbók — Myndir", gallery_body, active_page="gallery.html")
     (DOCS_DIR / "gallery.html").write_text(gallery_page)
 
-    # Build videos page
+    # Videos page: merge curated videos.json with YouTube embeds discovered in entries
     videos_path = Path(__file__).parent / "videos.json"
     if videos_path.exists():
-        videos = json.loads(videos_path.read_text())
-        # Filter out placeholder entries
-        videos = [v for v in videos if v.get("id") and not v["id"].startswith("YOUR_")]
+        manual_videos = json.loads(videos_path.read_text())
+        manual_videos = [v for v in manual_videos if v.get("id") and not v["id"].startswith("YOUR_")]
     else:
-        videos = []
+        manual_videos = []
 
-    if not videos:
+    auto_videos = []
+    for entry in entries:
+        for vid in entry.get("youtube_ids", []):
+            meta = fetch_youtube_meta(vid)
+            auto_videos.append({
+                "id": vid,
+                "title": meta.get("title") or "&Aacute;n titils",
+                "date": entry["date"],
+                "entry_slug": entry["slug"],
+                "entry_title": entry["title"],
+            })
+
+    seen_ids = set()
+    all_videos = []
+    for v in list(manual_videos) + auto_videos:
+        if v["id"] in seen_ids:
+            continue
+        seen_ids.add(v["id"])
+        all_videos.append(v)
+    all_videos.sort(key=lambda v: v.get("date", ""), reverse=True)
+
+    if not all_videos:
         videos_body = '<h2 class="section-heading">Myndbönd</h2>\n<p class="video-empty">Drónamyndefni á leiðinni — fylgist með.</p>'
     else:
         video_items = ""
-        for v in videos:
-            location_html = f' &middot; <span class="video-location">{v["location"]}</span>' if v.get("location") else ""
+        for v in all_videos:
+            if v.get("entry_slug"):
+                location_html = (
+                    f' &middot; <a class="video-location" href="{v["entry_slug"]}.html">{v["entry_title"]}</a>'
+                )
+            elif v.get("location"):
+                location_html = f' &middot; <span class="video-location">{v["location"]}</span>'
+            else:
+                location_html = ""
+            date_is = format_date_is(v.get("date", ""))
             video_items += (
                 f'<div class="video-item">'
-                f'<div class="video-embed">'
-                f'<iframe src="https://www.youtube.com/embed/{v["id"]}" '
-                f'allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" '
-                f'allowfullscreen loading="lazy"></iframe>'
-                f'</div>'
+                f'{youtube_iframe(v["id"])}'
                 f'<div class="video-info">'
                 f'<div class="video-title">{v.get("title", "&Aacute;n titils")}</div>'
-                f'<div class="video-meta">{v.get("date", "")}{location_html}</div>'
+                f'<div class="video-meta">{date_is}{location_html}</div>'
                 f'</div></div>\n'
             )
         videos_body = f'<h2 class="section-heading">Myndbönd</h2>\n<div class="video-grid">{video_items}</div>'
 
     videos_page = html_page("Ferðadagbók — Myndbönd", videos_body, active_page="videos.html")
     (DOCS_DIR / "videos.html").write_text(videos_page)
-    video_count = len(videos)
+    video_count = len(all_videos)
 
     # Build map data — one pin per location, listing every entry that mentions it
     location_groups = {}
@@ -927,6 +1009,7 @@ def build():
     (DOCS_DIR / "index.html").write_text(landing_html)
 
     _save_geocache()
+    _save_youtube_cache()
     print(f"Built {len(entries)} entries + blog + gallery + landing → docs/")
 
 

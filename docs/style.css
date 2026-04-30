@@ -473,8 +473,14 @@ article figcaption {
     color: var(--text-dim);
 }
 
-.video-meta .video-location {
+.video-meta .video-location,
+.video-meta a.video-location:visited {
     color: var(--accent);
+    text-decoration: none;
+}
+
+.video-meta a.video-location:hover {
+    text-decoration: underline;
 }
 
 /* --- Responsive --- */

@@ -24,3 +24,7 @@ the page body is rendered verbatim on the site. No AI rewriting.
   case-insensitive, hidden from the rendered page. If absent, the build falls
   back to guessing one place from the entry title.
 - Images embedded in the page are downloaded into `images/` and shown on the site.
+- **YouTube videos**: paste a YouTube URL into the body (as a video block, embed,
+  bookmark, or a paragraph that's just the URL on its own line). The build
+  embeds it inline in the post and auto-adds it to the **Myndbönd** page.
+  Titles are fetched via YouTube's oEmbed API and cached in `.youtube-cache.json`.

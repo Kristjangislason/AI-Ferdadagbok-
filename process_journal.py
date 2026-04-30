@@ -91,6 +91,18 @@ def rich_text_to_md(rich_texts):
     return "".join(out)
 
 
+YOUTUBE_URL_RE = re.compile(
+    r"^https?://(?:www\.|m\.)?(?:youtube\.com/(?:watch\?v=|embed/|shorts/)|youtu\.be/)([\w-]{11})\b"
+)
+
+
+def extract_youtube_id(url):
+    if not url:
+        return None
+    m = YOUTUBE_URL_RE.match(url.strip())
+    return m.group(1) if m else None
+
+
 def download_image(url, prefix=""):
     resp = requests.get(url, timeout=30)
     resp.raise_for_status()
@@ -114,7 +126,13 @@ def block_to_md(block, image_prefix=""):
     data = block.get(t, {})
 
     if t == "paragraph":
-        return rich_text_to_md(data.get("rich_text", []))
+        rich = data.get("rich_text", [])
+        full_text = "".join(rt.get("plain_text", "") for rt in rich).strip()
+        if full_text and " " not in full_text:
+            yid = extract_youtube_id(full_text)
+            if yid:
+                return f"<!--youtube:{yid}-->"
+        return rich_text_to_md(rich)
     if t == "heading_1":
         return "## " + rich_text_to_md(data.get("rich_text", []))
     if t == "heading_2":
@@ -137,6 +155,27 @@ def block_to_md(block, image_prefix=""):
         return f"```{lang}\n{text}\n```"
     if t == "divider":
         return "---"
+    if t == "video":
+        if data.get("type") == "external":
+            url = data.get("external", {}).get("url", "")
+        elif data.get("type") == "file":
+            url = data.get("file", {}).get("url", "")
+        else:
+            url = ""
+        yid = extract_youtube_id(url)
+        if yid:
+            return f"<!--youtube:{yid}-->"
+        return ""
+    if t == "embed":
+        yid = extract_youtube_id(data.get("url", ""))
+        if yid:
+            return f"<!--youtube:{yid}-->"
+        return ""
+    if t == "bookmark":
+        yid = extract_youtube_id(data.get("url", ""))
+        if yid:
+            return f"<!--youtube:{yid}-->"
+        return ""
     if t == "image":
         if data["type"] == "file":
             url = data["file"]["url"]
