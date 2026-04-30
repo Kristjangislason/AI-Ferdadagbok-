@@ -390,11 +390,11 @@ article figcaption {
     transition: max-width 0.35s ease;
 }
 
-/* When map is hidden, the journal can breathe wider — but cap so the list
-   doesn't sprawl edge-to-edge on huge screens. */
+/* When map is hidden, journal stays anchored at the left (same place it
+   was when the map was visible) — just allowed to breathe wider. */
 .dagbok-layout.map-hidden .journal-pane {
-    max-width: 1080px;
-    margin: 0 auto;
+    max-width: 880px;
+    justify-self: start;
 }
 
 /* --- Map --- */
@@ -628,20 +628,7 @@ article figcaption {
 .entry-row-body {
     padding: 8px 4px 48px;
     animation: fadeUp 0.35s ease both;
-}
-
-/* On desktop, hang-indent the body so it starts where the title does in
-   the summary above (110px date column + 18px gap = 128px), and cap the
-   reading width at 760px so prose stays comfortable. */
-@media (min-width: 901px) {
-    .entry-row-body {
-        padding-left: 128px;
-        max-width: 760px;
-        box-sizing: border-box;
-    }
-    .entry-row[open] > summary {
-        margin-bottom: 4px;
-    }
+    max-width: 760px;
 }
 
 .entry-row-body article h1,
