@@ -12,26 +12,51 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="container">
+<div class="container container--wide">
 <div class="topbar">
 <a href="index.html" class="site-name">Fer&eth;adagb&oacute;k</a>
-<nav><a href="blog.html">Dagbók</a><a href="gallery.html">Myndir</a><a href="videos.html">Myndbönd</a></nav>
+<nav><a href="index.html" class="active">Dagbók</a><a href="gallery.html">Myndir</a><a href="videos.html">Myndbönd</a></nav>
 </div>
-<div class="landing-hero">
-<div class="hero-title">Fer&eth; um Ind&oacute;nes&iacute;u</div>
-<div class="hero-route">Kristj&aacute;n G&iacute;slason og India Br&iacute;et B&ouml;&eth;varsd&oacute;ttir Terry</div>
-<div class="hero-dates">1. ma&iacute; &ndash; 6. j&uacute;n&iacute; 2026</div>
+<div class="hero-compact">
+Fer&eth;adagb&oacute;k<span class="sep">&middot;</span>1. ma&iacute; &ndash; 6. j&uacute;n&iacute; 2026<span class="sep">&middot;</span>Kristj&aacute;n og India
 </div>
-<div class="map-section">
+<div class="dagbok-layout">
+<aside class="map-pane">
 <div class="map-wrap">
 <div id="map" class="map-container"></div>
-<div class="map-hint">Smelltu &aacute; punktana til a&eth; lesa f&aelig;rslur</div>
+<div class="map-hint">Smelltu &aacute; punktana til a&eth; opna f&aelig;rslur</div>
 </div>
 <div class="map-stats">
 <span>3 f&aelig;rslur</span>
 <span>1 mynd</span>
 <span>0 myndb&ouml;nd</span>
 </div>
+</aside>
+<main class="journal-pane">
+<div class="dagbok-accordion">
+<details class="entry-row" id="2026-04-30-dagur-3-sulawesi"><summary><span class="entry-row-date">30. apríl 2026</span><span class="entry-row-title">Dagur 3 - Sulawesi</span><span class="entry-row-places">Makassar</span><span class="entry-row-chevron">&rsaquo;</span></summary><div class="entry-row-body"><article><p>For the text you wrote in Polarsteps, your main options are:</p>
+<ol>
+<li>
+<p><strong>Manual copy/paste</strong>
+Best if you only have a few entries. Copy each Polarsteps story into pages or blog posts on your website.</p>
+</li>
+<li>
+<p><strong>Export your Polarsteps data</strong>
+Polarsteps says you can download a copy of your data, and third-party examples indicate the text entries are available inside exported JSON files such as <code>trip.json</code>. You could then convert those entries into website posts.</p>
+</li>
+<li>
+<p><strong>Use WordPress plugin, if your site is WordPress</strong>
+There is a third-party Polarsteps WordPress plugin that imports steps and can generate blog posts from Polarsteps text and images. Polarsteps explicitly says it is <strong>not officially supported</strong>, so it could break later.</p>
+</li>
+<li>
+<p><strong>Custom integration</strong>
+A developer can parse your Polarsteps export and turn the stories into pages/cards/blog posts on your site. This is the most flexible and reliable option if you want the text to look native on your website.</p>
+</li>
+</ol>
+<p>So: <strong>you can embed the trip map officially, but connecting/syncing the written text usually requires export, copy/paste, WordPress plugin, or custom coding.</strong></p></article><a class="entry-row-permalink" href="2026-04-30-dagur-3-sulawesi.html">Opna sem s&iacute;&eth;u &rarr;</a></div></details><details class="entry-row" id="2026-04-30-dagur-2-tanjung-puting"><summary><span class="entry-row-date">30. apríl 2026</span><span class="entry-row-title">Dagur 2 - Tanjung Puting</span><span class="entry-row-places">Tanjung Puting</span><span class="entry-row-chevron">&rsaquo;</span></summary><div class="entry-row-body"><article><p>Þetta var fjör</p></article><a class="entry-row-permalink" href="2026-04-30-dagur-2-tanjung-puting.html">Opna sem s&iacute;&eth;u &rarr;</a></div></details><details class="entry-row" id="2026-04-30-dagur-1-jakarta"><summary><span class="entry-row-date">30. apríl 2026</span><span class="entry-row-title">Dagur 1 - Jakarta</span><span class="entry-row-places">Jakarta</span><span class="entry-row-chevron">&rsaquo;</span></summary><div class="entry-row-body"><article><p>ég fór í sundur og saman þegar þetta var gaman</p>
+<p><img src="images/2026-04-30-5db2d4fb9934.png" alt=""></p></article><a class="entry-row-permalink" href="2026-04-30-dagur-1-jakarta.html">Opna sem s&iacute;&eth;u &rarr;</a></div></details>
+</div>
+</main>
 </div>
 </div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -52,6 +77,7 @@
     }).addTo(map);
 
     var markers = [{"name": "Jakarta", "lat": -6.1754049, "lng": 106.827168, "entries": [{"title": "Dagur 1 - Jakarta", "date": "30. apríl 2026", "slug": "2026-04-30-dagur-1-jakarta"}]}, {"name": "Tanjung Puting", "lat": -3.5038484, "lng": 111.7705804, "entries": [{"title": "Dagur 2 - Tanjung Puting", "date": "30. apríl 2026", "slug": "2026-04-30-dagur-2-tanjung-puting"}]}, {"name": "Makassar", "lat": -5.1342962, "lng": 119.4124282, "entries": [{"title": "Dagur 3 - Sulawesi", "date": "30. apríl 2026", "slug": "2026-04-30-dagur-3-sulawesi"}]}];
+    var entryLocations = {"2026-04-30-dagur-1-jakarta": ["-6.1754,106.8272"], "2026-04-30-dagur-2-tanjung-puting": ["-3.5038,111.7706"], "2026-04-30-dagur-3-sulawesi": ["-5.1343,119.4124"]};
 
     var pinIcon = L.divIcon({
         className: 'map-pin',
@@ -61,16 +87,119 @@
         popupAnchor: [0, -14]
     });
 
+    var markersByKey = {};
+
+    function setKeysClass(keys, cls, on) {
+        keys.forEach(function(k) {
+            var m = markersByKey[k];
+            if (!m) return;
+            var el = m.getElement();
+            if (!el) return;
+            el.classList.toggle(cls, !!on);
+        });
+    }
+
+    function entriesAtKey(key) {
+        var slugs = [];
+        Object.keys(entryLocations).forEach(function(slug) {
+            if (entryLocations[slug].indexOf(key) !== -1) slugs.push(slug);
+        });
+        return slugs;
+    }
+
+    function setRowsClass(slugs, cls, on) {
+        slugs.forEach(function(slug) {
+            var d = document.getElementById(slug);
+            if (d) d.classList.toggle(cls, !!on);
+        });
+    }
+
+    function openEntry(slug, scroll) {
+        var d = document.getElementById(slug);
+        if (!d) return;
+        if (!d.open) d.open = true;
+        if (scroll) {
+            // Wait one frame for layout, then scroll
+            requestAnimationFrame(function() {
+                d.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        }
+    }
+
     markers.forEach(function(loc) {
+        var key = (Math.round(loc.lat * 10000) / 10000) + ',' + (Math.round(loc.lng * 10000) / 10000);
+        var marker = L.marker([loc.lat, loc.lng], { icon: pinIcon }).addTo(map);
         var popup = '<div class="popup-title">' + loc.name + '</div>';
         loc.entries.forEach(function(e) {
-            popup += '<a href="' + e.slug + '.html"><span class="popup-date">' + e.date + '</span> ' + e.title + '</a><br>';
+            popup += '<a href="#' + e.slug + '" data-slug="' + e.slug + '"><span class="popup-date">' + e.date + '</span> ' + e.title + '</a><br>';
         });
-        L.marker([loc.lat, loc.lng], { icon: pinIcon })
-            .bindPopup(popup, { maxWidth: 260 })
-            .addTo(map);
+        marker.bindPopup(popup, { maxWidth: 260 });
+        marker.on('click', function() {
+            if (loc.entries.length > 0) openEntry(loc.entries[0].slug, true);
+        });
+        marker.on('mouseover', function() {
+            setRowsClass(loc.entries.map(function(e) { return e.slug; }), 'highlighted', true);
+        });
+        marker.on('mouseout', function() {
+            setRowsClass(loc.entries.map(function(e) { return e.slug; }), 'highlighted', false);
+        });
+        markersByKey[key] = marker;
     });
 
+    // Wire entry rows → pin highlight + selected state on open
+    document.querySelectorAll('.entry-row').forEach(function(row) {
+        var slug = row.id;
+        var keys = entryLocations[slug] || [];
+        var summary = row.querySelector('summary');
+
+        summary.addEventListener('mouseenter', function() {
+            setKeysClass(keys, 'highlighted', true);
+        });
+        summary.addEventListener('mouseleave', function() {
+            setKeysClass(keys, 'highlighted', false);
+        });
+
+        row.addEventListener('toggle', function() {
+            if (row.open) {
+                // Lazy-load any iframes inside this entry
+                row.querySelectorAll('iframe[data-src]').forEach(function(f) {
+                    f.src = f.dataset.src;
+                    f.removeAttribute('data-src');
+                });
+                if (history.replaceState) {
+                    history.replaceState(null, '', '#' + slug);
+                }
+                setKeysClass(keys, 'selected', true);
+            } else {
+                setKeysClass(keys, 'selected', false);
+                if (location.hash === '#' + slug && history.replaceState) {
+                    history.replaceState(null, '', location.pathname);
+                }
+            }
+        });
+    });
+
+    // Popup links → open entry instead of navigating away
+    document.addEventListener('click', function(e) {
+        var a = e.target.closest('.leaflet-popup-content a[data-slug]');
+        if (!a) return;
+        e.preventDefault();
+        var slug = a.getAttribute('data-slug');
+        map.closePopup();
+        openEntry(slug, true);
+    });
+
+    // Open from URL hash on load + on hashchange
+    function openFromHash() {
+        var slug = location.hash.replace(/^#/, '');
+        if (slug && document.getElementById(slug)) {
+            openEntry(slug, true);
+        }
+    }
+    if (location.hash) requestAnimationFrame(openFromHash);
+    window.addEventListener('hashchange', openFromHash);
+
+    // Initial map view
     if (markers.length === 0) {
         map.setView([-4.5, 115.5], 5);
     } else if (markers.length === 1) {

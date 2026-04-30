@@ -197,6 +197,7 @@ a, a:visited { color: inherit; }
     --coral: #D45D4C;
     --sage: #6B7D62;
     --max-w: 720px;
+    --max-w-wide: 1180px;
 }
 
 @keyframes fadeUp {
@@ -218,6 +219,10 @@ body {
     margin: 0 auto;
     padding: 72px 28px 100px;
     animation: fadeUp 0.5s ease both;
+}
+
+.container--wide {
+    max-width: var(--max-w-wide);
 }
 
 /* --- Top bar (header + nav unified) --- */
@@ -442,55 +447,50 @@ article figcaption {
     font-style: italic;
 }
 
-/* --- Landing page --- */
+/* --- Landing: compact hero + map/accordion layout --- */
 
-.landing-hero {
-    text-align: center;
-    margin-bottom: 48px;
-    padding: 32px 0 40px;
-}
-
-.landing-hero .hero-title {
-    font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 52px;
-    font-weight: 300;
-    letter-spacing: -0.03em;
-    line-height: 1.1;
-    color: var(--text);
-    margin-bottom: 16px;
-}
-
-.landing-hero .hero-route {
+.hero-compact {
     font-family: 'Cormorant Garamond', Georgia, serif;
     font-size: 17px;
     font-style: italic;
-    color: var(--accent);
-    opacity: 0.6;
-    margin-bottom: 20px;
+    color: var(--text-dim);
+    text-align: center;
+    margin: -16px 0 32px;
 }
 
-.landing-hero .hero-dates {
-    font-size: 11px;
-    color: var(--text-dim);
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
+.hero-compact .sep {
+    margin: 0 10px;
+    opacity: 0.4;
+}
+
+.dagbok-layout {
+    display: grid;
+    grid-template-columns: 42% 1fr;
+    gap: 56px;
+    align-items: start;
+}
+
+.map-pane {
+    position: sticky;
+    top: 24px;
+    align-self: start;
+}
+
+.journal-pane {
+    min-width: 0;
 }
 
 /* --- Map --- */
 
-.map-section {
-    margin-bottom: 0;
-}
-
 .map-wrap {
     position: relative;
-    width: calc(100% + 56px);
-    margin-left: -28px;
 }
 
 .map-container {
     width: 100%;
-    height: 520px;
+    height: 70vh;
+    min-height: 480px;
+    max-height: 720px;
     border-radius: 16px;
     overflow: hidden;
     box-shadow: 0 0 0 1px rgba(196, 148, 74, 0.08), 0 12px 48px rgba(0, 0, 0, 0.4);
@@ -539,6 +539,22 @@ article figcaption {
     z-index: 2;
     cursor: pointer;
     box-shadow: 0 1px 6px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s ease, background 0.2s, border-color 0.2s;
+}
+
+.map-pin.highlighted .pin-dot {
+    transform: scale(1.5);
+    background: #E8806E;
+}
+
+.map-pin.selected .pin-dot {
+    transform: scale(1.6);
+    background: var(--accent);
+    border-color: var(--accent-light);
+}
+
+.map-pin.selected .pin-pulse {
+    background: var(--accent);
 }
 
 .map-pin .pin-pulse {
@@ -614,11 +630,123 @@ article figcaption {
     color: var(--text-dim);
 }
 
+/* --- Dagbók accordion (homepage) --- */
+
+.dagbok-accordion {
+    list-style: none;
+}
+
+.entry-row {
+    border-bottom: 1px solid rgba(196, 148, 74, 0.1);
+    scroll-margin-top: 24px;
+}
+
+.entry-row:first-child {
+    border-top: 1px solid rgba(196, 148, 74, 0.1);
+}
+
+.entry-row > summary {
+    list-style: none;
+    cursor: pointer;
+    display: grid;
+    grid-template-columns: 110px 1fr auto 16px;
+    gap: 18px;
+    align-items: baseline;
+    padding: 22px 4px;
+    border-radius: 8px;
+    margin: 0 -4px;
+    transition: background 0.2s;
+}
+
+.entry-row > summary::-webkit-details-marker { display: none; }
+.entry-row > summary::marker { display: none; }
+
+.entry-row > summary:hover,
+.entry-row.highlighted > summary {
+    background: rgba(196, 148, 74, 0.05);
+}
+
+.entry-row[open] > summary {
+    background: rgba(196, 148, 74, 0.07);
+}
+
+.entry-row-date {
+    font-size: 13px;
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.entry-row-title {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 22px;
+    font-weight: 500;
+    line-height: 1.35;
+    color: var(--text);
+}
+
+.entry-row-places {
+    font-size: 11px;
+    color: var(--accent);
+    opacity: 0.75;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    padding: 2px 10px;
+    border: 1px solid rgba(196, 148, 74, 0.25);
+    border-radius: 999px;
+}
+
+.entry-row-chevron {
+    font-size: 14px;
+    color: var(--text-dim);
+    line-height: 1;
+    transition: transform 0.25s ease;
+}
+
+.entry-row[open] .entry-row-chevron {
+    transform: rotate(90deg);
+}
+
+.entry-row-body {
+    padding: 8px 4px 48px;
+    animation: fadeUp 0.35s ease both;
+}
+
+.entry-row-body article h1,
+.entry-row-body article > .entry-date {
+    display: none;
+}
+
+.entry-row-body article p:first-of-type {
+    margin-top: 0;
+}
+
+.entry-row-body article img,
+.entry-row-body article figure {
+    margin: 28px 0;
+}
+
+.entry-row-permalink {
+    display: inline-block;
+    margin-top: 24px;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.entry-row-permalink:hover {
+    color: var(--accent);
+}
+
 /* --- Gallery --- */
 
 .gallery-grid {
-    columns: 2;
-    column-gap: 16px;
+    columns: 3;
+    column-gap: 18px;
 }
 
 .gallery-item {
@@ -677,9 +805,9 @@ article figcaption {
 /* --- Videos --- */
 
 .video-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 28px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
 }
 
 .video-item {
@@ -739,6 +867,16 @@ article figcaption {
 
 /* --- Responsive --- */
 
+@media (max-width: 900px) {
+    .dagbok-layout { grid-template-columns: 1fr; gap: 28px; }
+    .map-pane { position: static; }
+    .map-container { height: 320px; min-height: 0; max-height: none; }
+    .gallery-grid { columns: 2; }
+    .video-grid { grid-template-columns: 1fr; }
+    .entry-row > summary { grid-template-columns: 90px 1fr auto 14px; gap: 14px; }
+    .entry-row-title { font-size: 19px; }
+}
+
 @media (max-width: 600px) {
     .container { padding: 40px 20px 80px; }
     .topbar { flex-direction: column; align-items: flex-start; gap: 12px; }
@@ -748,9 +886,8 @@ article figcaption {
     article h1 { font-size: 32px; }
     .entry-list a { flex-direction: column; gap: 4px; }
     .entry-title { font-size: 19px; }
-    .landing-hero { padding: 16px 0 32px; }
-    .landing-hero .hero-title { font-size: 34px; }
-    .map-wrap { width: calc(100% + 40px); margin-left: -20px; }
+    .hero-compact { font-size: 14px; margin-top: -8px; }
+    .hero-compact .sep { margin: 0 6px; }
     .map-stats { gap: 20px; }
     .map-stats span { font-size: 11px; }
     .gallery-grid { columns: 1; }
@@ -762,12 +899,25 @@ article figcaption {
         align-items: flex-start;
     }
     .back-link { margin-bottom: 28px; }
+    .entry-row > summary {
+        grid-template-columns: 1fr 14px;
+        grid-template-areas:
+            "date chevron"
+            "title chevron"
+            "places chevron";
+        gap: 6px 14px;
+        padding: 18px 4px;
+    }
+    .entry-row-date { grid-area: date; }
+    .entry-row-title { grid-area: title; }
+    .entry-row-places { grid-area: places; justify-self: start; }
+    .entry-row-chevron { grid-area: chevron; align-self: center; }
 }
 """
 
 
 NAV_PAGES = [
-    ("blog.html", "Dagbók"),
+    ("index.html", "Dagbók"),
     ("gallery.html", "Myndir"),
     ("videos.html", "Myndbönd"),
 ]
@@ -794,6 +944,40 @@ def pluralize_is(count, singular, plural):
     return f"{count} {singular if count == 1 else plural}"
 
 
+def lazyfy_iframes(html):
+    """Replace iframe src with data-src so iframes don't load until JS injects them.
+    Used for the homepage accordion to avoid loading every YouTube embed up front.
+    """
+    return re.sub(r'<iframe\s+src="([^"]+)"', r'<iframe data-src="\1"', html)
+
+
+def render_entry_row(entry):
+    """One <details> accordion row for the homepage Dagbók."""
+    date_is = format_date_is(entry["date"])
+    place_chip = ""
+    place_names = entry.get("place_names") or []
+    if place_names:
+        chip = " &middot; ".join(place_names)
+        place_chip = f'<span class="entry-row-places">{chip}</span>'
+    body_html = lazyfy_iframes(entry["body_html"])
+    return (
+        f'<details class="entry-row" id="{entry["slug"]}">'
+        f'<summary>'
+        f'<span class="entry-row-date">{date_is}</span>'
+        f'<span class="entry-row-title">{entry["title"]}</span>'
+        f'{place_chip}'
+        f'<span class="entry-row-chevron">&rsaquo;</span>'
+        f'</summary>'
+        f'<div class="entry-row-body">'
+        f'<article>{body_html}</article>'
+        f'<a class="entry-row-permalink" href="{entry["slug"]}.html">'
+        f'Opna sem s&iacute;&eth;u &rarr;'
+        f'</a>'
+        f'</div>'
+        f'</details>'
+    )
+
+
 def render_entry_pager(prev_entry, next_entry):
     """Prev/next links shown at the bottom of an entry page."""
     if not prev_entry and not next_entry:
@@ -817,7 +1001,7 @@ def render_entry_pager(prev_entry, next_entry):
     return "".join(parts)
 
 
-def html_page(title, body, active_page=None, head_extra="", scripts=""):
+def html_page(title, body, active_page=None, head_extra="", scripts="", wide=False):
     nav_links = ""
     for href, label in NAV_PAGES:
         cls = ' class="active"' if href == active_page else ""
@@ -828,6 +1012,7 @@ def html_page(title, body, active_page=None, head_extra="", scripts=""):
 <nav>{nav_links}</nav>
 </div>"""
 
+    container_class = "container container--wide" if wide else "container"
     return f"""\
 <!DOCTYPE html>
 <html lang="is">
@@ -842,7 +1027,7 @@ def html_page(title, body, active_page=None, head_extra="", scripts=""):
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="container">
+<div class="{container_class}">
 {topbar}
 {body}
 </div>
@@ -908,32 +1093,32 @@ def build():
     entry_files = sorted(ENTRIES_DIR.glob("*.md"))
     entries = [parse_entry(f) for f in entry_files]
 
+    # Resolve coordinates for each entry up front — used for both the map markers
+    # and the JS map↔accordion sync.
+    for entry in entries:
+        resolved = locate_entry_places(entry)
+        entry["resolved_locations"] = resolved
+        entry["location_keys"] = [
+            f"{round(loc['lat'], 4)},{round(loc['lng'], 4)}" for loc in resolved
+        ]
+        entry["place_names"] = [loc["name"] for loc in resolved]
+
+    # Per-entry standalone pages (narrow reading column)
     for i, entry in enumerate(entries):
         date_is = format_date_is(entry["date"])
         prev_entry = entries[i - 1] if i > 0 else None
         next_entry = entries[i + 1] if i + 1 < len(entries) else None
         body = (
-            f'<a class="back-link" href="blog.html">&larr; Til baka &iacute; Dagb&oacute;k</a>'
+            f'<a class="back-link" href="index.html#{entry["slug"]}">'
+            f'&larr; Til baka &iacute; Dagb&oacute;k'
+            f'</a>'
             f'<article><h1>{entry["title"]}</h1>'
             f'<div class="entry-date">{date_is}</div>'
             f'{entry["body_html"]}</article>'
             f'{render_entry_pager(prev_entry, next_entry)}'
         )
-        page = html_page(entry["title"], body, active_page="blog.html")
+        page = html_page(entry["title"], body, active_page="index.html")
         (DOCS_DIR / f'{entry["slug"]}.html').write_text(page)
-
-    # Build blog page (entry list)
-    items = ""
-    for entry in reversed(entries):  # newest first
-        items += (
-            f'<li><a href="{entry["slug"]}.html">'
-            f'<div class="entry-date">{format_date_is(entry["date"])}</div>'
-            f'<div class="entry-title">{entry["title"]}</div>'
-            f'</a></li>\n'
-        )
-    blog_body = f'<h2 class="section-heading">Dagbók</h2>\n<ul class="entry-list">{items}</ul>'
-    blog_page = html_page("Ferðadagbók — Dagbók", blog_body, active_page="blog.html")
-    (DOCS_DIR / "blog.html").write_text(blog_page)
 
     gallery_items = []
     seen_srcs = set()
@@ -958,7 +1143,7 @@ def build():
         gallery_body = '<p class="gallery-empty">Engar myndir ennþá — þær birtast hér eftir því sem ferðin þróast.</p>'
     else:
         gallery_body = f'<h2 class="section-heading">Myndir</h2>\n<div class="gallery-grid">{chr(10).join(gallery_items)}</div>'
-    gallery_page = html_page("Ferðadagbók — Myndir", gallery_body, active_page="gallery.html")
+    gallery_page = html_page("Ferðadagbók — Myndir", gallery_body, active_page="gallery.html", wide=True)
     (DOCS_DIR / "gallery.html").write_text(gallery_page)
 
     # Videos page: merge curated videos.json with YouTube embeds discovered in entries
@@ -1014,14 +1199,14 @@ def build():
             )
         videos_body = f'<h2 class="section-heading">Myndbönd</h2>\n<div class="video-grid">{video_items}</div>'
 
-    videos_page = html_page("Ferðadagbók — Myndbönd", videos_body, active_page="videos.html")
+    videos_page = html_page("Ferðadagbók — Myndbönd", videos_body, active_page="videos.html", wide=True)
     (DOCS_DIR / "videos.html").write_text(videos_page)
     video_count = len(all_videos)
 
     # Build map data — one pin per location, listing every entry that mentions it
     location_groups = {}
     for entry in entries:
-        for loc in locate_entry_places(entry):
+        for loc in entry["resolved_locations"]:
             key = (round(loc["lat"], 4), round(loc["lng"], 4))
             if key not in location_groups:
                 location_groups[key] = {
@@ -1038,27 +1223,44 @@ def build():
                 })
 
     map_markers_json = json.dumps(list(location_groups.values()), ensure_ascii=False)
+    entry_locations_json = json.dumps(
+        {entry["slug"]: entry["location_keys"] for entry in entries},
+        ensure_ascii=False,
+    )
 
-    # Build landing page (index) — custom layout with map
+    # Homepage: compact hero + sticky map + accordion of entries (newest first)
     entry_count = len(entries)
     image_count = len(seen_srcs)
 
+    accordion_html = "".join(render_entry_row(e) for e in reversed(entries))
+    if not accordion_html:
+        accordion_html = (
+            '<p class="gallery-empty">Engar f&aelig;rslur ennt&thorn;&aacute; '
+            '&mdash; &thorn;&aelig;r birtast h&eacute;r eftir &thorn;v&iacute; '
+            'sem fer&eth;in &thorn;r&oacute;ast.</p>'
+        )
+
     landing_body = f"""\
-<div class="landing-hero">
-<div class="hero-title">Fer&eth; um Ind&oacute;nes&iacute;u</div>
-<div class="hero-route">Kristj&aacute;n G&iacute;slason og India Br&iacute;et B&ouml;&eth;varsd&oacute;ttir Terry</div>
-<div class="hero-dates">1. ma&iacute; &ndash; 6. j&uacute;n&iacute; 2026</div>
+<div class="hero-compact">
+Fer&eth;adagb&oacute;k<span class="sep">&middot;</span>1. ma&iacute; &ndash; 6. j&uacute;n&iacute; 2026<span class="sep">&middot;</span>Kristj&aacute;n og India
 </div>
-<div class="map-section">
+<div class="dagbok-layout">
+<aside class="map-pane">
 <div class="map-wrap">
 <div id="map" class="map-container"></div>
-<div class="map-hint">Smelltu &aacute; punktana til a&eth; lesa f&aelig;rslur</div>
+<div class="map-hint">Smelltu &aacute; punktana til a&eth; opna f&aelig;rslur</div>
 </div>
 <div class="map-stats">
 <span>{pluralize_is(entry_count, 'f&aelig;rsla', 'f&aelig;rslur')}</span>
 <span>{pluralize_is(image_count, 'mynd', 'myndir')}</span>
 <span>{pluralize_is(video_count, 'myndband', 'myndb&ouml;nd')}</span>
 </div>
+</aside>
+<main class="journal-pane">
+<div class="dagbok-accordion">
+{accordion_html}
+</div>
+</main>
 </div>"""
 
     map_script = f"""\
@@ -1080,6 +1282,7 @@ def build():
     }}).addTo(map);
 
     var markers = {map_markers_json};
+    var entryLocations = {entry_locations_json};
 
     var pinIcon = L.divIcon({{
         className: 'map-pin',
@@ -1089,16 +1292,119 @@ def build():
         popupAnchor: [0, -14]
     }});
 
+    var markersByKey = {{}};
+
+    function setKeysClass(keys, cls, on) {{
+        keys.forEach(function(k) {{
+            var m = markersByKey[k];
+            if (!m) return;
+            var el = m.getElement();
+            if (!el) return;
+            el.classList.toggle(cls, !!on);
+        }});
+    }}
+
+    function entriesAtKey(key) {{
+        var slugs = [];
+        Object.keys(entryLocations).forEach(function(slug) {{
+            if (entryLocations[slug].indexOf(key) !== -1) slugs.push(slug);
+        }});
+        return slugs;
+    }}
+
+    function setRowsClass(slugs, cls, on) {{
+        slugs.forEach(function(slug) {{
+            var d = document.getElementById(slug);
+            if (d) d.classList.toggle(cls, !!on);
+        }});
+    }}
+
+    function openEntry(slug, scroll) {{
+        var d = document.getElementById(slug);
+        if (!d) return;
+        if (!d.open) d.open = true;
+        if (scroll) {{
+            // Wait one frame for layout, then scroll
+            requestAnimationFrame(function() {{
+                d.scrollIntoView({{ behavior: 'smooth', block: 'start' }});
+            }});
+        }}
+    }}
+
     markers.forEach(function(loc) {{
+        var key = (Math.round(loc.lat * 10000) / 10000) + ',' + (Math.round(loc.lng * 10000) / 10000);
+        var marker = L.marker([loc.lat, loc.lng], {{ icon: pinIcon }}).addTo(map);
         var popup = '<div class="popup-title">' + loc.name + '</div>';
         loc.entries.forEach(function(e) {{
-            popup += '<a href="' + e.slug + '.html"><span class="popup-date">' + e.date + '</span> ' + e.title + '</a><br>';
+            popup += '<a href="#' + e.slug + '" data-slug="' + e.slug + '"><span class="popup-date">' + e.date + '</span> ' + e.title + '</a><br>';
         }});
-        L.marker([loc.lat, loc.lng], {{ icon: pinIcon }})
-            .bindPopup(popup, {{ maxWidth: 260 }})
-            .addTo(map);
+        marker.bindPopup(popup, {{ maxWidth: 260 }});
+        marker.on('click', function() {{
+            if (loc.entries.length > 0) openEntry(loc.entries[0].slug, true);
+        }});
+        marker.on('mouseover', function() {{
+            setRowsClass(loc.entries.map(function(e) {{ return e.slug; }}), 'highlighted', true);
+        }});
+        marker.on('mouseout', function() {{
+            setRowsClass(loc.entries.map(function(e) {{ return e.slug; }}), 'highlighted', false);
+        }});
+        markersByKey[key] = marker;
     }});
 
+    // Wire entry rows → pin highlight + selected state on open
+    document.querySelectorAll('.entry-row').forEach(function(row) {{
+        var slug = row.id;
+        var keys = entryLocations[slug] || [];
+        var summary = row.querySelector('summary');
+
+        summary.addEventListener('mouseenter', function() {{
+            setKeysClass(keys, 'highlighted', true);
+        }});
+        summary.addEventListener('mouseleave', function() {{
+            setKeysClass(keys, 'highlighted', false);
+        }});
+
+        row.addEventListener('toggle', function() {{
+            if (row.open) {{
+                // Lazy-load any iframes inside this entry
+                row.querySelectorAll('iframe[data-src]').forEach(function(f) {{
+                    f.src = f.dataset.src;
+                    f.removeAttribute('data-src');
+                }});
+                if (history.replaceState) {{
+                    history.replaceState(null, '', '#' + slug);
+                }}
+                setKeysClass(keys, 'selected', true);
+            }} else {{
+                setKeysClass(keys, 'selected', false);
+                if (location.hash === '#' + slug && history.replaceState) {{
+                    history.replaceState(null, '', location.pathname);
+                }}
+            }}
+        }});
+    }});
+
+    // Popup links → open entry instead of navigating away
+    document.addEventListener('click', function(e) {{
+        var a = e.target.closest('.leaflet-popup-content a[data-slug]');
+        if (!a) return;
+        e.preventDefault();
+        var slug = a.getAttribute('data-slug');
+        map.closePopup();
+        openEntry(slug, true);
+    }});
+
+    // Open from URL hash on load + on hashchange
+    function openFromHash() {{
+        var slug = location.hash.replace(/^#/, '');
+        if (slug && document.getElementById(slug)) {{
+            openEntry(slug, true);
+        }}
+    }}
+    if (location.hash) requestAnimationFrame(openFromHash);
+    window.addEventListener('hashchange', openFromHash);
+
+    // Initial map view
     if (markers.length === 0) {{
         map.setView([-4.5, 115.5], 5);
     }} else if (markers.length === 1) {{
@@ -1111,12 +1417,19 @@ def build():
 </script>"""
 
     leaflet_css = '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />\n'
-    landing_html = html_page("Ferðadagbók", landing_body, head_extra=leaflet_css, scripts=map_script)
+    landing_html = html_page(
+        "Ferðadagbók",
+        landing_body,
+        active_page="index.html",
+        head_extra=leaflet_css,
+        scripts=map_script,
+        wide=True,
+    )
     (DOCS_DIR / "index.html").write_text(landing_html)
 
     _save_geocache()
     _save_youtube_cache()
-    print(f"Built {len(entries)} entries + blog + gallery + landing → docs/")
+    print(f"Built {len(entries)} entries + gallery + videos + dagbók home → docs/")
 
 
 if __name__ == "__main__":

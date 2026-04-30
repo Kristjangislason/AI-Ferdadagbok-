@@ -16,7 +16,11 @@ the page body is rendered verbatim on the site. No AI rewriting.
   a sub-page automatically removes/updates the entry on the next run.
   Image filenames are hashed from the URL path (not the signed URL) so
   Notion's URL refreshes don't create duplicates.
-- `build_site.py` — render `entries/` + `videos.json` into `docs/`.
+- `build_site.py` — render `entries/` + `videos.json` into `docs/`. The
+  homepage (`index.html`) is the Dagbók itself: a sticky map on the left and
+  a `<details>` accordion of entries on the right. Per-entry pages
+  (`<slug>.html`) are kept as standalone deep-links. Gallery and Videos use
+  a wider canvas; per-entry pages stay narrow for reading.
 
 A GitHub Action (`.github/workflows/journal.yml`) runs both scripts every
 hour and commits any changes back to `main`.
