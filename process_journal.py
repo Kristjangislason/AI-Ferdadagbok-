@@ -14,6 +14,7 @@ import hashlib
 import os
 import re
 from pathlib import Path
+from urllib.parse import urlparse
 
 import requests
 from dotenv import load_dotenv
@@ -104,20 +105,22 @@ def extract_youtube_id(url):
 
 
 def download_image(url, prefix=""):
+    """Download a Notion image, using its stable URL path (not the signed
+    URL) for the filename hash so re-runs don't create duplicates.
+    Skips the network call if the file already exists.
+    """
+    parsed = urlparse(url)
+    ext = Path(parsed.path).suffix.lower()
+    if ext not in (".png", ".jpg", ".jpeg", ".gif", ".webp"):
+        ext = ".jpg"
+    h = hashlib.sha256(parsed.path.encode()).hexdigest()[:12]
+    filename = f"{prefix}{h}{ext}"
+    filepath = IMAGES_DIR / filename
+    if filepath.exists():
+        return filename
     resp = requests.get(url, timeout=30)
     resp.raise_for_status()
-    ct = resp.headers.get("content-type", "")
-    if "png" in ct:
-        ext = ".png"
-    elif "gif" in ct:
-        ext = ".gif"
-    elif "webp" in ct:
-        ext = ".webp"
-    else:
-        ext = ".jpg"
-    h = hashlib.sha256(url.encode()).hexdigest()[:12]
-    filename = f"{prefix}{h}{ext}"
-    (IMAGES_DIR / filename).write_bytes(resp.content)
+    filepath.write_bytes(resp.content)
     return filename
 
 
@@ -208,29 +211,53 @@ def parse_title_and_date(raw_title, page_meta):
 def main():
     print("Fetching sub-pages from Notion…")
     pages = list_child_pages()
-
-    if not pages:
-        print("No sub-pages found under the parent page. Add some in Notion first.")
-        return
-
     print(f"Found {len(pages)} sub-page(s).")
 
+    expected_entries = set()
     for i, page in enumerate(pages, 1):
         raw_title = page["child_page"]["title"]
         date, title = parse_title_and_date(raw_title, page)
-
-        print(f"\n[{i}/{len(pages)}] {title}  ({date})")
-
-        blocks = get_blocks(page["id"])
-        body_md = blocks_to_markdown(blocks, image_prefix=f"{date}-")
-
         slug = slugify(title)
         filename = f"{date}-{slug}.md"
-        filepath = ENTRIES_DIR / filename
-        filepath.write_text(f"# {title}\n\n{body_md}\n")
-        print(f"  Saved: {filename}")
+        expected_entries.add(filename)
 
-    print(f"\nDone — {len(pages)} entry/entries written to entries/.")
+        print(f"\n[{i}/{len(pages)}] {title}  ({date})")
+        try:
+            blocks = get_blocks(page["id"])
+            body_md = blocks_to_markdown(blocks, image_prefix=f"{date}-")
+            (ENTRIES_DIR / filename).write_text(f"# {title}\n\n{body_md}\n")
+            print(f"  Saved: {filename}")
+        except Exception as e:
+            print(f"  Warning: failed to process {raw_title!r}: {e}")
+
+    # Prune entries whose Notion sub-page is gone (deleted or renamed)
+    removed_entries = 0
+    for f in ENTRIES_DIR.glob("*.md"):
+        if f.name not in expected_entries:
+            f.unlink()
+            removed_entries += 1
+            print(f"Removed stale entry: {f.name}")
+
+    # Prune images that no current entry references
+    referenced = set()
+    for f in ENTRIES_DIR.glob("*.md"):
+        text = f.read_text()
+        for m in re.finditer(r"images/([^)\s]+)", text):
+            referenced.add(m.group(1))
+
+    removed_images = 0
+    if IMAGES_DIR.exists():
+        for f in IMAGES_DIR.glob("*"):
+            if f.is_file() and f.name not in referenced:
+                f.unlink()
+                removed_images += 1
+                print(f"Removed stale image: {f.name}")
+
+    print(
+        f"\nDone — {len(pages)} sub-page(s) synced, "
+        f"{removed_entries} stale entry/entries pruned, "
+        f"{removed_images} unused image(s) cleaned."
+    )
 
 
 if __name__ == "__main__":

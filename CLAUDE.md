@@ -10,8 +10,16 @@ Entries live as sub-pages under one parent Notion page (`NOTION_PAGE_ID` in `.en
 Each sub-page is one blog entry — the Notion title becomes the entry title and
 the page body is rendered verbatim on the site. No AI rewriting.
 
-- `process_journal.py` — fetch every Notion sub-page and write `entries/*.md`.
+- `process_journal.py` — fetch every Notion sub-page, write `entries/*.md`,
+  and prune any local entry/image that no longer corresponds to a current
+  Notion sub-page. Notion is the single source of truth: deleting or renaming
+  a sub-page automatically removes/updates the entry on the next run.
+  Image filenames are hashed from the URL path (not the signed URL) so
+  Notion's URL refreshes don't create duplicates.
 - `build_site.py` — render `entries/` + `videos.json` into `docs/`.
+
+A GitHub Action (`.github/workflows/journal.yml`) runs both scripts every
+hour and commits any changes back to `main`.
 
 ## Notion page conventions
 - **Sub-page title** is the entry title shown on the website.
