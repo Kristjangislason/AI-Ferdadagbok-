@@ -2,4 +2,4 @@
 
 ég fór í sundur og saman þegar þetta var gaman
 
-![](../images/2026-04-30-e007ddab8128.png)
+![](../images/2026-04-30-6b58ad51abed.png)
