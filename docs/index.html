@@ -20,8 +20,11 @@
 </header>
 <div class="container container--wide">
 <div class="dagbok-layout" id="dagbok-layout">
+<button type="button" class="map-show-toggle" id="map-show-toggle" aria-label="S&yacute;na kort">
+<span class="map-show-icon" aria-hidden="true">&#9678;</span>
+<span>S&yacute;na kort</span>
+</button>
 <main class="journal-pane">
-<button type="button" class="map-show-toggle" id="map-show-toggle">S&yacute;na kort &rarr;</button>
 <div class="dagbok-accordion">
 <details class="entry-row" id="2026-04-30-dagur-3-sulawesi"><summary><span class="entry-row-date">30. apríl 2026</span><span class="entry-row-title">Dagur 3 - Sulawesi</span><span class="entry-row-places">Makassar</span><span class="entry-row-chevron">&rsaquo;</span></summary><div class="entry-row-body"><article><p>For the text you wrote in Polarsteps, your main options are:</p>
 <ol>
@@ -48,7 +51,7 @@ A developer can parse your Polarsteps export and turn the stories into pages/car
 </main>
 <aside class="map-pane">
 <button type="button" class="map-hide-toggle" id="map-hide-toggle" aria-label="Fela kort">
-&larr; Fela kort
+<span aria-hidden="true">&times;</span>
 </button>
 <div class="map-wrap">
 <div id="map" class="map-container"></div>
