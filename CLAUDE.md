@@ -1,18 +1,22 @@
-# AI-Ferðadagbók (AI Travel Journal)
+# AI-Ferðadagbók (Travel Journal)
 
 ## What this project is
-A personal travel journal for a trip through Indonesia (May 1 – June 6).
+A personal travel journal for a trip through Indonesia (1. maí – 6. júní 2026).
 Route: Jakarta → Tanjung Puting (Borneo) → Sulawesi → Flores → Jakarta.
+Site is published in Icelandic.
 
-Each day (or whenever I feel like it) I give Claude rough notes and Claude 
-cleans them up — fixing grammar and structure only — and saves as Markdown.
+## Workflow
+Entries live as sub-pages under one parent Notion page (`NOTION_PAGE_ID` in `.env`).
+Each sub-page is one blog entry — the Notion title becomes the entry title and
+the page body is rendered verbatim on the site. No AI rewriting.
 
-## Rules for Claude
-- **Claude is a copy editor, NOT a writer.** Do not generate new text. Only output my words.
-- Do not add sentences, descriptions, dialogue, or details that are not in my notes.
-- If my notes are short, the output must be short. Do not expand or elaborate.
-- Only fix grammar, spelling, punctuation, structure, and Markdown formatting
-- Always write in the same language as my notes (Icelandic → Icelandic, English → English)
-- Never invent facts or add descriptive language that isn't in my notes
-- If my notes are vague, ask rather than guess
-- Save entries in an `entries/` folder, named by date + a short descriptive slug based on the content e.g `2026-05-03-orangutans-on-the-river.md`
+- `process_journal.py` — fetch every Notion sub-page and write `entries/*.md`.
+- `build_site.py` — render `entries/` + `videos.json` into `docs/`.
+
+## Notion page conventions
+- **Sub-page title** is the entry title shown on the website.
+- **Sub-page body** is the entry body shown on the website.
+- **Date**: if the title starts with `YYYY-MM-DD` it's used as the entry date
+  (and stripped from the displayed title). Otherwise the page's Notion
+  `created_time` is used.
+- Images embedded in the page are downloaded into `images/` and shown on the site.

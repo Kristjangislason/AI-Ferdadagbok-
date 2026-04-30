@@ -1,311 +1,197 @@
 """
-AI-Ferðadagbók — Process rough travel notes from Notion into polished journal entries.
+AI-Ferðadagbók — Pull each Notion sub-page from the parent page and save as
+a Markdown journal entry.
 
-Reads notes from ## TO PROCESS, sends each to Claude for writing,
-saves as Markdown, then moves processed notes to ## DONE.
+Each sub-page under NOTION_PAGE_ID becomes one entry:
+  - sub-page title  → entry title (the # heading)
+  - sub-page body   → entry body (verbatim)
+  - date            → leading "YYYY-MM-DD" in the title if present, else Notion's created_time
+
+No AI rewriting — what you write in Notion is exactly what shows up on the site.
 """
 
 import hashlib
 import os
 import re
 from pathlib import Path
+
 import requests
-from anthropic import Anthropic
 from dotenv import load_dotenv
 from notion_client import Client
 
-load_dotenv(dotenv_path='.env')
+load_dotenv(dotenv_path=".env")
 
-client = Anthropic()
 notion = Client(auth=os.environ["NOTION_API_KEY"])
-PAGE_ID = os.environ["NOTION_PAGE_ID"]
+PARENT_PAGE_ID = os.environ["NOTION_PAGE_ID"]
 ENTRIES_DIR = Path(__file__).parent / "entries"
 ENTRIES_DIR.mkdir(exist_ok=True)
 IMAGES_DIR = Path(__file__).parent / "images"
 IMAGES_DIR.mkdir(exist_ok=True)
 
-SYSTEM_PROMPT = """\
-You are a copy editor, NOT a writer. The user gives you their travel notes \
-and you return them cleaned up. You must NEVER generate new text.
 
-YOUR ONLY JOB:
-- Fix grammar, spelling, and punctuation
-- Improve paragraph structure and line breaks
-- Fix Markdown formatting
-- Add a heading: # Month Day — Short Title
-
-ABSOLUTE RULES:
-- Output ONLY the author's own words. Do not add sentences, descriptions, \
-dialogue, or details that are not in the original notes.
-- Do not expand, elaborate, or flesh out the notes. If the notes are short, \
-the output must be short.
-- Do not swap words for synonyms. Do not rewrite phrases in your own style.
-- Keep the same language as the notes (Icelandic stays Icelandic, English \
-stays English).
-- Preserve any image lines (![caption](path)) exactly as they are.
-- The trip year is 2026 — always use 2026 for dates.
-
-The output should be the cleaned-up notes with a heading, nothing more. \
-Then on a new line at the very end, output exactly:
-FILENAME: <yyyy-mm-dd-short-slug.md>
-
-The slug should be lowercase, hyphenated, descriptive (e.g. 2026-05-09-rainforest.md).
-"""
+ICELANDIC_SLUG_MAP = str.maketrans({
+    "á": "a", "ð": "d", "é": "e", "í": "i", "ó": "o", "ú": "u", "ý": "y",
+    "þ": "th", "æ": "ae", "ö": "o",
+    "Á": "A", "Ð": "D", "É": "E", "Í": "I", "Ó": "O", "Ú": "U", "Ý": "Y",
+    "Þ": "Th", "Æ": "Ae", "Ö": "O",
+})
 
 
-def get_page_blocks():
-    """Fetch all blocks from the Notion page."""
+def slugify(text):
+    text = text.translate(ICELANDIC_SLUG_MAP)
+    text = re.sub(r"[^a-zA-Z0-9]+", "-", text).strip("-").lower()
+    return text or "entry"
+
+
+def list_child_pages():
+    pages = []
+    cursor = None
+    while True:
+        resp = notion.blocks.children.list(block_id=PARENT_PAGE_ID, start_cursor=cursor)
+        for block in resp["results"]:
+            if block["type"] == "child_page":
+                pages.append(block)
+        if not resp["has_more"]:
+            break
+        cursor = resp["next_cursor"]
+    return pages
+
+
+def get_blocks(block_id):
     blocks = []
     cursor = None
     while True:
-        response = notion.blocks.children.list(block_id=PAGE_ID, start_cursor=cursor)
-        blocks.extend(response["results"])
-        if not response["has_more"]:
+        resp = notion.blocks.children.list(block_id=block_id, start_cursor=cursor)
+        blocks.extend(resp["results"])
+        if not resp["has_more"]:
             break
-        cursor = response["next_cursor"]
+        cursor = resp["next_cursor"]
     return blocks
 
 
-def extract_text(block):
-    """Extract plain text from a block."""
-    block_type = block["type"]
-    if block_type not in block:
-        return ""
-    rich_texts = block[block_type].get("rich_text", [])
-    return "".join(rt["plain_text"] for rt in rich_texts)
+def rich_text_to_md(rich_texts):
+    out = []
+    for rt in rich_texts:
+        text = rt.get("plain_text", "")
+        if not text:
+            continue
+        ann = rt.get("annotations", {})
+        if ann.get("code"):
+            text = f"`{text}`"
+        if ann.get("bold"):
+            text = f"**{text}**"
+        if ann.get("italic"):
+            text = f"*{text}*"
+        if ann.get("strikethrough"):
+            text = f"~~{text}~~"
+        href = rt.get("href")
+        if href:
+            text = f"[{text}]({href})"
+        out.append(text)
+    return "".join(out)
 
 
-def find_section_blocks(blocks, header_text):
-    """Find all blocks between a given ## header and the next ## header."""
-    section_blocks = []
-    in_section = False
-
-    for block in blocks:
-        if block["type"] == "heading_2":
-            text = extract_text(block)
-            if text.strip().upper() == header_text.upper():
-                in_section = True
-                continue
-            elif in_section:
-                break
-        elif in_section:
-            section_blocks.append(block)
-
-    return section_blocks
-
-
-def split_entries_by_headers(blocks):
-    """Split blocks into entries grouped by ### headers.
-
-    Returns a list of (header_text, [blocks]) tuples.
-    """
-    entries = []
-    current_header = None
-    current_blocks = []
-
-    for block in blocks:
-        if block["type"] == "heading_3":
-            # Save previous entry if it exists
-            if current_header is not None and current_blocks:
-                entries.append((current_header, current_blocks))
-            current_header = extract_text(block)
-            current_blocks = [block]
-        elif current_header is not None:
-            current_blocks.append(block)
-
-    # Save last entry
-    if current_header is not None and current_blocks:
-        entries.append((current_header, current_blocks))
-
-    return entries
-
-
-def download_image(url, date_prefix):
-    """Download an image from Notion and save it locally. Returns the local filename."""
+def download_image(url, prefix=""):
     resp = requests.get(url, timeout=30)
     resp.raise_for_status()
-
-    # Determine extension from content type or URL
-    content_type = resp.headers.get("content-type", "")
-    if "png" in content_type:
+    ct = resp.headers.get("content-type", "")
+    if "png" in ct:
         ext = ".png"
-    elif "gif" in content_type:
+    elif "gif" in ct:
         ext = ".gif"
-    elif "webp" in content_type:
+    elif "webp" in ct:
         ext = ".webp"
     else:
         ext = ".jpg"
-
-    # Use a hash of the URL for a stable, unique filename
-    url_hash = hashlib.sha256(url.encode()).hexdigest()[:12]
-    filename = f"{date_prefix}{url_hash}{ext}"
-    filepath = IMAGES_DIR / filename
-    filepath.write_bytes(resp.content)
+    h = hashlib.sha256(url.encode()).hexdigest()[:12]
+    filename = f"{prefix}{h}{ext}"
+    (IMAGES_DIR / filename).write_bytes(resp.content)
     return filename
 
 
-def entry_blocks_to_text(header, blocks, date_prefix=""):
-    """Convert a header and its blocks to plain text for Claude.
+def block_to_md(block, image_prefix=""):
+    t = block["type"]
+    data = block.get(t, {})
 
-    Downloads any images and inserts Markdown image references.
-    """
-    lines = [f"### {header}"]
-    for block in blocks:
-        if block["type"] == "heading_3":
-            continue
-        if block["type"] == "image":
-            image_data = block["image"]
-            # Notion images can be "file" (uploaded) or "external" (linked)
-            if image_data["type"] == "file":
-                url = image_data["file"]["url"]
-            else:
-                url = image_data["external"]["url"]
-            # Extract caption if present
-            caption_parts = image_data.get("caption", [])
-            caption = "".join(rt["plain_text"] for rt in caption_parts)
-            try:
-                img_filename = download_image(url, date_prefix)
-                lines.append(f"![{caption}](../images/{img_filename})")
-                print(f"    Downloaded image: {img_filename}")
-            except Exception as e:
-                print(f"    Warning: failed to download image: {e}")
-            continue
-        text = extract_text(block)
-        if text:
-            lines.append(text)
-    return "\n".join(lines)
-
-
-def write_journal_entry(notes):
-    """Send notes to Claude and get back a polished journal entry."""
-    response = client.messages.create(
-        model="claude-sonnet-4-6",
-        max_tokens=4096,
-        system=SYSTEM_PROMPT,
-        messages=[{"role": "user", "content": notes}],
-    )
-
-    output = response.content[0].text
-
-    match = re.search(r"FILENAME:\s*(.+\.md)", output)
-    if match:
-        filename = re.sub(r"[^0-9a-zA-Z._-]", "", match.group(1).strip())
-        entry_text = output[: match.start()].strip()
-    else:
-        # Fallback: generate filename from the heading
-        print("  Warning: Claude didn't return a FILENAME line, generating one.")
-        entry_text = output.strip()
-        heading_match = re.search(r"^#\s+(.+)$", entry_text, re.MULTILINE)
-        if heading_match:
-            slug = re.sub(r"[^a-z0-9]+", "-", heading_match.group(1).lower()).strip("-")
-            filename = f"2026-{slug}.md"
+    if t == "paragraph":
+        return rich_text_to_md(data.get("rich_text", []))
+    if t == "heading_1":
+        return "## " + rich_text_to_md(data.get("rich_text", []))
+    if t == "heading_2":
+        return "### " + rich_text_to_md(data.get("rich_text", []))
+    if t == "heading_3":
+        return "#### " + rich_text_to_md(data.get("rich_text", []))
+    if t == "bulleted_list_item":
+        return "- " + rich_text_to_md(data.get("rich_text", []))
+    if t == "numbered_list_item":
+        return "1. " + rich_text_to_md(data.get("rich_text", []))
+    if t == "quote":
+        text = rich_text_to_md(data.get("rich_text", []))
+        return "> " + text.replace("\n", "\n> ")
+    if t == "to_do":
+        checked = "[x]" if data.get("checked") else "[ ]"
+        return f"- {checked} " + rich_text_to_md(data.get("rich_text", []))
+    if t == "code":
+        text = "".join(rt.get("plain_text", "") for rt in data.get("rich_text", []))
+        lang = data.get("language", "")
+        return f"```{lang}\n{text}\n```"
+    if t == "divider":
+        return "---"
+    if t == "image":
+        if data["type"] == "file":
+            url = data["file"]["url"]
         else:
-            filename = "2026-untitled.md"
-
-    return filename, entry_text
-
-
-def rebuild_block(block):
-    """Rebuild a block for appending to Notion, preserving its original type."""
-    block_type = block["type"]
-
-    if block_type == "divider":
-        return {"type": "divider", "divider": {}}
-
-    if block_type in ("heading_1", "heading_2", "heading_3"):
-        rich_text = block[block_type].get("rich_text", [])
-        return {"type": block_type, block_type: {"rich_text": rich_text}}
-
-    # For bulleted/numbered lists, paragraphs, etc.
-    if block_type in block and "rich_text" in block[block_type]:
-        rich_text = block[block_type]["rich_text"]
-        return {"type": block_type, block_type: {"rich_text": rich_text}}
-
-    # Fallback: paragraph with extracted text
-    text = extract_text(block)
-    if text:
-        return {
-            "type": "paragraph",
-            "paragraph": {"rich_text": [{"type": "text", "text": {"content": text}}]},
-        }
-    return None
+            url = data["external"]["url"]
+        caption = "".join(rt.get("plain_text", "") for rt in data.get("caption", []))
+        try:
+            filename = download_image(url, image_prefix)
+            print(f"    Image: {filename}")
+            return f"![{caption}](../images/{filename})"
+        except Exception as e:
+            print(f"    Warning: failed to download image: {e}")
+            return ""
+    return ""
 
 
-def move_to_done(all_entry_blocks, all_blocks):
-    """Move processed blocks from TO PROCESS to DONE cleanly."""
-    # Find the DONE heading
-    done_heading_id = None
-    for block in all_blocks:
-        if block["type"] == "heading_2" and extract_text(block).strip().upper() == "DONE":
-            done_heading_id = block["id"]
-            break
+def blocks_to_markdown(blocks, image_prefix=""):
+    return "\n\n".join(filter(None, (block_to_md(b, image_prefix) for b in blocks)))
 
-    # If no DONE section exists, create it at the end of the page
-    if not done_heading_id:
-        result = notion.blocks.children.append(
-            block_id=PAGE_ID,
-            children=[
-                {"type": "heading_2", "heading_2": {"rich_text": [{"type": "text", "text": {"content": "DONE"}}]}},
-            ],
-        )
-        done_heading_id = result["results"][0]["id"]
 
-    # Rebuild blocks preserving original types, no extra dividers
-    children_to_append = []
-    for block in all_entry_blocks:
-        rebuilt = rebuild_block(block)
-        if rebuilt:
-            children_to_append.append(rebuilt)
-
-    if children_to_append:
-        notion.blocks.children.append(
-            block_id=PAGE_ID,
-            children=children_to_append,
-            after=done_heading_id,
-        )
-
-    # Delete the original blocks from TO PROCESS
-    for block in all_entry_blocks:
-        notion.blocks.delete(block_id=block["id"])
+def parse_title_and_date(raw_title, page_meta):
+    """Pull a YYYY-MM-DD prefix from the title if present, else use created_time."""
+    m = re.match(r"^(\d{4}-\d{2}-\d{2})\s*[-—:]?\s*(.*)$", raw_title.strip())
+    if m:
+        return m.group(1), (m.group(2).strip() or raw_title.strip())
+    created = page_meta.get("created_time", "")[:10]
+    return created, raw_title.strip()
 
 
 def main():
-    print("Fetching notes from Notion...")
-    all_blocks = get_page_blocks()
-    section_blocks = find_section_blocks(all_blocks, "TO PROCESS")
+    print("Fetching sub-pages from Notion…")
+    pages = list_child_pages()
 
-    if not section_blocks:
-        print("Nothing to process.")
+    if not pages:
+        print("No sub-pages found under the parent page. Add some in Notion first.")
         return
 
-    entries = split_entries_by_headers(section_blocks)
-    print(f"Found {len(entries)} entry/entries to process.")
+    print(f"Found {len(pages)} sub-page(s).")
 
-    for i, (header, blocks) in enumerate(entries, 1):
-        print(f"\n[{i}/{len(entries)}] Processing: {header}")
+    for i, page in enumerate(pages, 1):
+        raw_title = page["child_page"]["title"]
+        date, title = parse_title_and_date(raw_title, page)
 
-        # Extract date from the header (expects format like "May 1 — ..." or "2025-05-01")
-        date_match = re.search(r"(\d{4}-\d{2}-\d{2})", header)
-        date_prefix = date_match.group(1) + "-" if date_match else ""
-        notes = entry_blocks_to_text(header, blocks, date_prefix=date_prefix)
-        filename, entry_text = write_journal_entry(notes)
-        if not date_prefix:
-            date_prefix = filename[:11]
+        print(f"\n[{i}/{len(pages)}] {title}  ({date})")
 
-        # Skip if an entry for this date already exists
-        existing = list(ENTRIES_DIR.glob(f"{date_prefix}*"))
-        if existing:
-            print(f"  Skipping — entry for {date_prefix[:-1]} already exists: {existing[0].name}")
-            continue
+        blocks = get_blocks(page["id"])
+        body_md = blocks_to_markdown(blocks, image_prefix=f"{date}-")
 
+        slug = slugify(title)
+        filename = f"{date}-{slug}.md"
         filepath = ENTRIES_DIR / filename
-        filepath.write_text(entry_text + "\n")
+        filepath.write_text(f"# {title}\n\n{body_md}\n")
         print(f"  Saved: {filename}")
 
-    # Move everything from TO PROCESS to DONE
-    print("\nMoving processed notes to DONE...")
-    move_to_done(section_blocks, all_blocks)
-    print("Done!")
+    print(f"\nDone — {len(pages)} entry/entries written to entries/.")
 
 
 if __name__ == "__main__":

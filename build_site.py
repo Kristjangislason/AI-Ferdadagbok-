@@ -633,10 +633,26 @@ article figcaption {
 
 
 NAV_PAGES = [
-    ("blog.html", "Journal"),
-    ("gallery.html", "Photos"),
-    ("videos.html", "Videos"),
+    ("blog.html", "Dagbók"),
+    ("gallery.html", "Myndir"),
+    ("videos.html", "Myndbönd"),
 ]
+
+ICELANDIC_MONTHS = {
+    1: "janúar", 2: "febrúar", 3: "mars", 4: "apríl",
+    5: "maí", 6: "júní", 7: "júlí", 8: "ágúst",
+    9: "september", 10: "október", 11: "nóvember", 12: "desember",
+}
+
+
+def format_date_is(date_str):
+    """Render YYYY-MM-DD as Icelandic '8. maí 2026'."""
+    m = re.match(r"^(\d{4})-(\d{2})-(\d{2})$", date_str.strip())
+    if not m:
+        return date_str
+    y, mo, d = m.groups()
+    month = ICELANDIC_MONTHS.get(int(mo), mo)
+    return f"{int(d)}. {month} {y}"
 
 
 def html_page(title, body, active_page=None, head_extra="", scripts=""):
@@ -652,7 +668,7 @@ def html_page(title, body, active_page=None, head_extra="", scripts=""):
 
     return f"""\
 <!DOCTYPE html>
-<html lang="en">
+<html lang="is">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -724,7 +740,8 @@ def build():
     entries = [parse_entry(f) for f in entry_files]
 
     for entry in entries:
-        body = f'<article><h1>{entry["title"]}</h1><div class="entry-date">{entry["date"]}</div>{entry["body_html"]}</article>'
+        date_is = format_date_is(entry["date"])
+        body = f'<article><h1>{entry["title"]}</h1><div class="entry-date">{date_is}</div>{entry["body_html"]}</article>'
         page = html_page(entry["title"], body, active_page="blog.html")
         (DOCS_DIR / f'{entry["slug"]}.html').write_text(page)
 
@@ -733,12 +750,12 @@ def build():
     for entry in reversed(entries):  # newest first
         items += (
             f'<li><a href="{entry["slug"]}.html">'
-            f'<div class="entry-date">{entry["date"]}</div>'
+            f'<div class="entry-date">{format_date_is(entry["date"])}</div>'
             f'<div class="entry-title">{entry["title"]}</div>'
             f'</a></li>\n'
         )
-    blog_body = f'<h2 class="section-heading">Journal</h2>\n<ul class="entry-list">{items}</ul>'
-    blog_page = html_page("Ferðadagbók — Blog", blog_body, active_page="blog.html")
+    blog_body = f'<h2 class="section-heading">Dagbók</h2>\n<ul class="entry-list">{items}</ul>'
+    blog_page = html_page("Ferðadagbók — Dagbók", blog_body, active_page="blog.html")
     (DOCS_DIR / "blog.html").write_text(blog_page)
 
     gallery_items = []
@@ -761,10 +778,10 @@ def build():
             )
 
     if not gallery_items:
-        gallery_body = '<p class="gallery-empty">No photos yet — they\'ll appear here as the journey unfolds.</p>'
+        gallery_body = '<p class="gallery-empty">Engar myndir ennþá — þær birtast hér eftir því sem ferðin þróast.</p>'
     else:
-        gallery_body = f'<h2 class="section-heading">Photos</h2>\n<div class="gallery-grid">{chr(10).join(gallery_items)}</div>'
-    gallery_page = html_page("Ferðadagbók — Photos", gallery_body, active_page="gallery.html")
+        gallery_body = f'<h2 class="section-heading">Myndir</h2>\n<div class="gallery-grid">{chr(10).join(gallery_items)}</div>'
+    gallery_page = html_page("Ferðadagbók — Myndir", gallery_body, active_page="gallery.html")
     (DOCS_DIR / "gallery.html").write_text(gallery_page)
 
     # Build videos page
@@ -777,7 +794,7 @@ def build():
         videos = []
 
     if not videos:
-        videos_body = '<h2 class="section-heading">Videos</h2>\n<p class="video-empty">Drone footage coming soon — stay tuned.</p>'
+        videos_body = '<h2 class="section-heading">Myndbönd</h2>\n<p class="video-empty">Drónamyndefni á leiðinni — fylgist með.</p>'
     else:
         video_items = ""
         for v in videos:
@@ -794,9 +811,9 @@ def build():
                 f'<div class="video-meta">{v.get("date", "")}{location_html}</div>'
                 f'</div></div>\n'
             )
-        videos_body = f'<h2 class="section-heading">Videos</h2>\n<div class="video-grid">{video_items}</div>'
+        videos_body = f'<h2 class="section-heading">Myndbönd</h2>\n<div class="video-grid">{video_items}</div>'
 
-    videos_page = html_page("Ferðadagbók — Videos", videos_body, active_page="videos.html")
+    videos_page = html_page("Ferðadagbók — Myndbönd", videos_body, active_page="videos.html")
     (DOCS_DIR / "videos.html").write_text(videos_page)
     video_count = len(videos)
 
@@ -823,19 +840,19 @@ def build():
 
     landing_body = f"""\
 <div class="landing-hero">
-<div class="hero-title">A journey through Indonesia</div>
-<div class="hero-route">Jakarta &rarr; Borneo &rarr; Sulawesi &rarr; Flores &rarr; Jakarta</div>
-<div class="hero-dates">May 1 &ndash; June 6, 2026</div>
+<div class="hero-title">Fer&eth; um Ind&oacute;nes&iacute;u</div>
+<div class="hero-route">Jakarta &rarr; B&oacute;rneó &rarr; S&uacute;lawesi &rarr; Flores &rarr; Jakarta</div>
+<div class="hero-dates">1. ma&iacute; &ndash; 6. j&uacute;n&iacute; 2026</div>
 </div>
 <div class="map-section">
 <div class="map-wrap">
 <div id="map" class="map-container"></div>
-<div class="map-hint">Click the pins to explore entries</div>
+<div class="map-hint">Smelltu &aacute; punktana til a&eth; lesa f&aelig;rslur</div>
 </div>
 <div class="map-stats">
-<span>{entry_count} entries</span>
-<span>{image_count} photos</span>
-<span>{video_count} videos</span>
+<span>{entry_count} f&aelig;rslur</span>
+<span>{image_count} myndir</span>
+<span>{video_count} myndb&ouml;nd</span>
 </div>
 </div>"""
 
