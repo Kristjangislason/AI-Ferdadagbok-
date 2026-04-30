@@ -11,13 +11,90 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="container">
-<div class="topbar">
-<a href="index.html" class="site-name">Fer&eth;adagb&oacute;k</a>
+<header class="site-header">
+<div class="site-header-inner">
+<a class="site-title" href="index.html">Kristj&aacute;n og India Br&iacute;et &mdash; Fer&eth; um Ind&oacute;nes&iacute;u</a>
 <nav><a href="index.html" class="active">Dagbók</a><a href="gallery.html">Myndir</a><a href="videos.html">Myndbönd</a></nav>
 </div>
+</header>
+<div class="container">
 <a class="back-link" href="index.html#2026-04-30-dagur-1-jakarta">&larr; Til baka &iacute; Dagb&oacute;k</a><article><h1>Dagur 1 - Jakarta</h1><div class="entry-date">30. apríl 2026</div><p>ég fór í sundur og saman þegar þetta var gaman</p>
 <p><img src="images/2026-04-30-5db2d4fb9934.png" alt=""></p></article><nav class="entry-pager"><a class="entry-pager-next" href="2026-04-30-dagur-2-tanjung-puting.html"><span class="pager-direction">N&aelig;sta f&aelig;rsla &rarr;</span><span class="pager-title">Dagur 2 - Tanjung Puting</span></a></nav>
 </div>
+<script>
+(function() {
+    var imgs = Array.prototype.slice.call(
+        document.querySelectorAll('article img, .gallery-item img')
+    );
+    if (!imgs.length) return;
+
+    var overlay = document.createElement('div');
+    overlay.className = 'lightbox';
+    overlay.innerHTML = ''
+        + '<button type="button" class="lightbox-close" aria-label="Loka">&times;</button>'
+        + '<button type="button" class="lightbox-prev" aria-label="Fyrri mynd">&larr;</button>'
+        + '<div class="lightbox-counter"></div>'
+        + '<figure class="lightbox-figure">'
+        +   '<img class="lightbox-img" alt="">'
+        +   '<figcaption class="lightbox-caption"></figcaption>'
+        + '</figure>'
+        + '<button type="button" class="lightbox-next" aria-label="N&aelig;sta mynd">&rarr;</button>';
+    document.body.appendChild(overlay);
+    if (imgs.length < 2) overlay.classList.add('is-single');
+
+    var imgEl = overlay.querySelector('.lightbox-img');
+    var capEl = overlay.querySelector('.lightbox-caption');
+    var counterEl = overlay.querySelector('.lightbox-counter');
+    var current = 0;
+
+    function update() {
+        var src = imgs[current];
+        imgEl.src = src.src;
+        imgEl.alt = src.alt || '';
+        capEl.textContent = src.alt || '';
+        counterEl.textContent = (current + 1) + ' / ' + imgs.length;
+    }
+
+    function open(i) {
+        current = i;
+        update();
+        overlay.classList.add('open');
+        document.body.classList.add('lightbox-open');
+    }
+
+    function close() {
+        overlay.classList.remove('open');
+        document.body.classList.remove('lightbox-open');
+    }
+
+    function prev() { current = (current - 1 + imgs.length) % imgs.length; update(); }
+    function next() { current = (current + 1) % imgs.length; update(); }
+
+    imgs.forEach(function(img, i) {
+        img.addEventListener('click', function(e) {
+            e.preventDefault();
+            open(i);
+        });
+    });
+
+    overlay.querySelector('.lightbox-close').addEventListener('click', close);
+    overlay.querySelector('.lightbox-prev').addEventListener('click', function(e) {
+        e.stopPropagation(); prev();
+    });
+    overlay.querySelector('.lightbox-next').addEventListener('click', function(e) {
+        e.stopPropagation(); next();
+    });
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay || e.target.classList.contains('lightbox-figure')) close();
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (!overlay.classList.contains('open')) return;
+        if (e.key === 'Escape') close();
+        else if (e.key === 'ArrowLeft') prev();
+        else if (e.key === 'ArrowRight') next();
+    });
+})();
+</script>
 </body>
 </html>

@@ -12,26 +12,21 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="container container--wide">
-<div class="topbar">
-<a href="index.html" class="site-name">Fer&eth;adagb&oacute;k</a>
+<header class="site-header">
+<div class="site-header-inner">
+<a class="site-title" href="index.html">Kristj&aacute;n og India Br&iacute;et &mdash; Fer&eth; um Ind&oacute;nes&iacute;u</a>
 <nav><a href="index.html" class="active">Dagbók</a><a href="gallery.html">Myndir</a><a href="videos.html">Myndbönd</a></nav>
 </div>
+</header>
+<div class="container container--wide">
 <div class="hero-compact">
-Fer&eth;adagb&oacute;k<span class="sep">&middot;</span>1. ma&iacute; &ndash; 6. j&uacute;n&iacute; 2026<span class="sep">&middot;</span>Kristj&aacute;n og India
+1. ma&iacute; &ndash; 6. j&uacute;n&iacute; 2026<span class="sep">&middot;</span>3 f&aelig;rslur<span class="sep">&middot;</span>1 mynd<span class="sep">&middot;</span>0 myndb&ouml;nd
 </div>
-<div class="dagbok-layout">
-<aside class="map-pane">
-<div class="map-wrap">
-<div id="map" class="map-container"></div>
-<div class="map-hint">Smelltu &aacute; punktana til a&eth; opna f&aelig;rslur</div>
-</div>
-<div class="map-stats">
-<span>3 f&aelig;rslur</span>
-<span>1 mynd</span>
-<span>0 myndb&ouml;nd</span>
-</div>
-</aside>
+<div class="dagbok-layout" id="dagbok-layout">
+<button type="button" class="map-toggle" id="map-toggle" aria-label="Skipta um sýnileika korts">
+<span class="map-toggle-icon" aria-hidden="true">&#x25B8;</span>
+<span class="map-toggle-text">Fela kort</span>
+</button>
 <main class="journal-pane">
 <div class="dagbok-accordion">
 <details class="entry-row" id="2026-04-30-dagur-3-sulawesi"><summary><span class="entry-row-date">30. apríl 2026</span><span class="entry-row-title">Dagur 3 - Sulawesi</span><span class="entry-row-places">Makassar</span><span class="entry-row-chevron">&rsaquo;</span></summary><div class="entry-row-body"><article><p>For the text you wrote in Polarsteps, your main options are:</p>
@@ -57,15 +52,23 @@ A developer can parse your Polarsteps export and turn the stories into pages/car
 <p><img src="images/2026-04-30-5db2d4fb9934.png" alt=""></p></article><a class="entry-row-permalink" href="2026-04-30-dagur-1-jakarta.html">Opna sem s&iacute;&eth;u &rarr;</a></div></details>
 </div>
 </main>
+<aside class="map-pane">
+<div class="map-wrap">
+<div id="map" class="map-container"></div>
+<div class="map-hint">Smelltu &aacute; punktana til a&eth; opna f&aelig;rslur</div>
+</div>
+</aside>
 </div>
 </div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 (function() {
+    // --- Leaflet map ---
     var map = L.map('map', {
         zoomControl: false,
         attributionControl: false
     });
+    window._dagbokMap = map;
 
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
@@ -208,6 +211,111 @@ A developer can parse your Polarsteps export and turn the stories into pages/car
         var bounds = L.latLngBounds(markers.map(function(m) { return [m.lat, m.lng]; }));
         map.fitBounds(bounds, { padding: [60, 60], maxZoom: 8 });
     }
+
+    // --- Map toggle (open/close map column) ---
+    var layout = document.getElementById('dagbok-layout');
+    var toggleBtn = document.getElementById('map-toggle');
+    var toggleText = toggleBtn ? toggleBtn.querySelector('.map-toggle-text') : null;
+    var toggleIcon = toggleBtn ? toggleBtn.querySelector('.map-toggle-icon') : null;
+    var STORAGE_KEY = 'dagbok-map-hidden';
+
+    function applyMapHidden(hidden) {
+        if (!layout) return;
+        layout.classList.toggle('map-hidden', hidden);
+        if (toggleText) toggleText.textContent = hidden ? 'S\u00FDna kort' : 'Fela kort';
+        if (toggleIcon) toggleIcon.innerHTML = hidden ? '&#x25C2;' : '&#x25B8;';
+        try { localStorage.setItem(STORAGE_KEY, hidden ? '1' : '0'); } catch (e) {}
+        if (!hidden) {
+            setTimeout(function() { map.invalidateSize(); }, 360);
+        }
+    }
+
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', function() {
+            var nowHidden = !layout.classList.contains('map-hidden');
+            applyMapHidden(nowHidden);
+        });
+    }
+
+    // Restore saved state (after map fully initialized)
+    try {
+        if (localStorage.getItem(STORAGE_KEY) === '1') applyMapHidden(true);
+    } catch (e) {}
 })();
-</script></body>
+</script><script>
+(function() {
+    var imgs = Array.prototype.slice.call(
+        document.querySelectorAll('article img, .gallery-item img')
+    );
+    if (!imgs.length) return;
+
+    var overlay = document.createElement('div');
+    overlay.className = 'lightbox';
+    overlay.innerHTML = ''
+        + '<button type="button" class="lightbox-close" aria-label="Loka">&times;</button>'
+        + '<button type="button" class="lightbox-prev" aria-label="Fyrri mynd">&larr;</button>'
+        + '<div class="lightbox-counter"></div>'
+        + '<figure class="lightbox-figure">'
+        +   '<img class="lightbox-img" alt="">'
+        +   '<figcaption class="lightbox-caption"></figcaption>'
+        + '</figure>'
+        + '<button type="button" class="lightbox-next" aria-label="N&aelig;sta mynd">&rarr;</button>';
+    document.body.appendChild(overlay);
+    if (imgs.length < 2) overlay.classList.add('is-single');
+
+    var imgEl = overlay.querySelector('.lightbox-img');
+    var capEl = overlay.querySelector('.lightbox-caption');
+    var counterEl = overlay.querySelector('.lightbox-counter');
+    var current = 0;
+
+    function update() {
+        var src = imgs[current];
+        imgEl.src = src.src;
+        imgEl.alt = src.alt || '';
+        capEl.textContent = src.alt || '';
+        counterEl.textContent = (current + 1) + ' / ' + imgs.length;
+    }
+
+    function open(i) {
+        current = i;
+        update();
+        overlay.classList.add('open');
+        document.body.classList.add('lightbox-open');
+    }
+
+    function close() {
+        overlay.classList.remove('open');
+        document.body.classList.remove('lightbox-open');
+    }
+
+    function prev() { current = (current - 1 + imgs.length) % imgs.length; update(); }
+    function next() { current = (current + 1) % imgs.length; update(); }
+
+    imgs.forEach(function(img, i) {
+        img.addEventListener('click', function(e) {
+            e.preventDefault();
+            open(i);
+        });
+    });
+
+    overlay.querySelector('.lightbox-close').addEventListener('click', close);
+    overlay.querySelector('.lightbox-prev').addEventListener('click', function(e) {
+        e.stopPropagation(); prev();
+    });
+    overlay.querySelector('.lightbox-next').addEventListener('click', function(e) {
+        e.stopPropagation(); next();
+    });
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay || e.target.classList.contains('lightbox-figure')) close();
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (!overlay.classList.contains('open')) return;
+        if (e.key === 'Escape') close();
+        else if (e.key === 'ArrowLeft') prev();
+        else if (e.key === 'ArrowRight') next();
+    });
+})();
+</script>
+</body>
 </html>

@@ -217,7 +217,7 @@ body {
 .container {
     max-width: var(--max-w);
     margin: 0 auto;
-    padding: 72px 28px 100px;
+    padding: 56px 28px 100px;
     animation: fadeUp 0.5s ease both;
 }
 
@@ -225,55 +225,77 @@ body {
     max-width: var(--max-w-wide);
 }
 
-/* --- Top bar (header + nav unified) --- */
+/* --- Site header (full-width banded bar) --- */
 
-.topbar {
+.site-header {
+    background: var(--surface);
+    border-bottom: 1px solid rgba(196, 148, 74, 0.12);
+}
+
+.site-header-inner {
+    max-width: var(--max-w-wide);
+    margin: 0 auto;
+    padding: 16px 28px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 56px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid rgba(196, 148, 74, 0.1);
+    gap: 32px;
 }
 
-.topbar .site-name,
-.topbar .site-name:visited {
+.site-title,
+.site-title:visited {
     font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 22px;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-    text-decoration: none;
+    font-size: 17px;
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: 0.01em;
     color: var(--text);
+    text-decoration: none;
     transition: opacity 0.2s;
+    line-height: 1.3;
 }
 
-.topbar .site-name:hover {
+.site-title:hover {
     opacity: 0.7;
 }
 
-.topbar nav {
+.site-header nav {
     display: flex;
     gap: 24px;
+    flex-shrink: 0;
 }
 
-.topbar nav a {
-    font-size: 12px;
+.site-header nav a,
+.site-header nav a:visited {
+    font-size: 11px;
     color: var(--text-dim);
     text-decoration: none;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     padding: 4px 0;
     border-bottom: 1.5px solid transparent;
     transition: color 0.2s, border-color 0.2s;
 }
 
-.topbar nav a:hover {
+.site-header nav a:hover {
     color: var(--text);
 }
 
-.topbar nav a.active {
+.site-header nav a.active {
     color: var(--text);
     border-color: var(--accent);
+}
+
+@media (max-width: 600px) {
+    .site-header-inner {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 14px 20px;
+    }
+    .site-title { font-size: 15px; }
+    .site-header nav { gap: 16px; }
+    .site-header nav a { font-size: 10px; }
 }
 
 /* --- Section heading --- */
@@ -465,19 +487,65 @@ article figcaption {
 
 .dagbok-layout {
     display: grid;
-    grid-template-columns: 42% 1fr;
+    grid-template-columns: 1fr 42%;
+    grid-template-areas: "journal map";
     gap: 56px;
     align-items: start;
+    position: relative;
+    transition: grid-template-columns 0.35s ease;
+}
+
+.dagbok-layout.map-hidden {
+    grid-template-columns: 1fr;
+    grid-template-areas: "journal";
+}
+
+.dagbok-layout.map-hidden .map-pane {
+    display: none;
 }
 
 .map-pane {
+    grid-area: map;
     position: sticky;
     top: 24px;
     align-self: start;
 }
 
 .journal-pane {
+    grid-area: journal;
     min-width: 0;
+}
+
+.map-toggle {
+    position: absolute;
+    top: -8px;
+    right: 0;
+    background: rgba(196, 148, 74, 0.08);
+    color: var(--text-dim);
+    border: 1px solid rgba(196, 148, 74, 0.2);
+    border-radius: 999px;
+    padding: 7px 14px 7px 12px;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+    z-index: 5;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+}
+
+.map-toggle:hover {
+    background: rgba(196, 148, 74, 0.18);
+    color: var(--text);
+    border-color: rgba(196, 148, 74, 0.4);
+}
+
+.map-toggle .map-toggle-icon {
+    font-size: 13px;
+    line-height: 1;
 }
 
 /* --- Map --- */
@@ -868,13 +936,19 @@ article figcaption {
 /* --- Responsive --- */
 
 @media (max-width: 900px) {
-    .dagbok-layout { grid-template-columns: 1fr; gap: 28px; }
+    .dagbok-layout {
+        grid-template-columns: 1fr;
+        grid-template-areas: "map" "journal";
+        gap: 28px;
+    }
+    .dagbok-layout.map-hidden { grid-template-areas: "journal"; }
     .map-pane { position: static; }
     .map-container { height: 320px; min-height: 0; max-height: none; }
     .gallery-grid { columns: 2; }
     .video-grid { grid-template-columns: 1fr; }
     .entry-row > summary { grid-template-columns: 90px 1fr auto 14px; gap: 14px; }
     .entry-row-title { font-size: 19px; }
+    .map-toggle { top: -36px; font-size: 10px; }
 }
 
 @media (max-width: 600px) {
@@ -912,6 +986,148 @@ article figcaption {
     .entry-row-title { grid-area: title; }
     .entry-row-places { grid-area: places; justify-self: start; }
     .entry-row-chevron { grid-area: chevron; align-self: center; }
+}
+
+/* --- Lightbox --- */
+
+.lightbox {
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 14, 10, 0.96);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: none;
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+    animation: lightboxIn 0.2s ease;
+}
+
+.lightbox.open { display: flex; }
+
+@keyframes lightboxIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.lightbox-figure {
+    position: relative;
+    max-width: 92vw;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
+.lightbox-img {
+    max-width: 92vw;
+    max-height: 82vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 6px;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+}
+
+.lightbox-caption {
+    color: var(--text-dim);
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 15px;
+    font-style: italic;
+    text-align: center;
+    max-width: 720px;
+    line-height: 1.5;
+    min-height: 1em;
+}
+
+.lightbox-counter {
+    position: absolute;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--text-dim);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
+    background: rgba(19, 30, 23, 0.6);
+    padding: 6px 14px;
+    border-radius: 999px;
+    pointer-events: none;
+}
+
+.lightbox-close,
+.lightbox-prev,
+.lightbox-next {
+    position: absolute;
+    background: rgba(237, 232, 223, 0.06);
+    color: var(--text);
+    border: 1px solid rgba(237, 232, 223, 0.15);
+    cursor: pointer;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, border-color 0.2s, transform 0.15s;
+    font-family: inherit;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.lightbox-close:hover,
+.lightbox-prev:hover,
+.lightbox-next:hover {
+    background: rgba(237, 232, 223, 0.16);
+    border-color: rgba(237, 232, 223, 0.35);
+}
+
+.lightbox-prev:active,
+.lightbox-next:active { transform: scale(0.92); }
+
+.lightbox-close {
+    top: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    font-size: 26px;
+    line-height: 1;
+}
+
+.lightbox-prev,
+.lightbox-next {
+    top: 50%;
+    transform: translateY(-50%);
+    width: 52px;
+    height: 52px;
+    font-size: 22px;
+}
+
+.lightbox-prev { left: 24px; }
+.lightbox-next { right: 24px; }
+
+.lightbox.is-single .lightbox-prev,
+.lightbox.is-single .lightbox-next,
+.lightbox.is-single .lightbox-counter { display: none; }
+
+body.lightbox-open { overflow: hidden; }
+
+/* Make article and gallery images clickable */
+article img,
+.gallery-item img {
+    cursor: zoom-in;
+}
+
+@media (max-width: 600px) {
+    .lightbox-prev, .lightbox-next {
+        width: 44px;
+        height: 44px;
+        font-size: 18px;
+    }
+    .lightbox-prev { left: 12px; }
+    .lightbox-next { right: 12px; }
+    .lightbox-close { top: 12px; right: 12px; }
+    .lightbox-counter { top: 16px; font-size: 10px; }
+    .lightbox-caption { font-size: 13px; padding: 0 16px; }
 }
 """
 
@@ -1001,16 +1217,97 @@ def render_entry_pager(prev_entry, next_entry):
     return "".join(parts)
 
 
+LIGHTBOX_SCRIPT = """\
+<script>
+(function() {
+    var imgs = Array.prototype.slice.call(
+        document.querySelectorAll('article img, .gallery-item img')
+    );
+    if (!imgs.length) return;
+
+    var overlay = document.createElement('div');
+    overlay.className = 'lightbox';
+    overlay.innerHTML = ''
+        + '<button type="button" class="lightbox-close" aria-label="Loka">&times;</button>'
+        + '<button type="button" class="lightbox-prev" aria-label="Fyrri mynd">&larr;</button>'
+        + '<div class="lightbox-counter"></div>'
+        + '<figure class="lightbox-figure">'
+        +   '<img class="lightbox-img" alt="">'
+        +   '<figcaption class="lightbox-caption"></figcaption>'
+        + '</figure>'
+        + '<button type="button" class="lightbox-next" aria-label="N&aelig;sta mynd">&rarr;</button>';
+    document.body.appendChild(overlay);
+    if (imgs.length < 2) overlay.classList.add('is-single');
+
+    var imgEl = overlay.querySelector('.lightbox-img');
+    var capEl = overlay.querySelector('.lightbox-caption');
+    var counterEl = overlay.querySelector('.lightbox-counter');
+    var current = 0;
+
+    function update() {
+        var src = imgs[current];
+        imgEl.src = src.src;
+        imgEl.alt = src.alt || '';
+        capEl.textContent = src.alt || '';
+        counterEl.textContent = (current + 1) + ' / ' + imgs.length;
+    }
+
+    function open(i) {
+        current = i;
+        update();
+        overlay.classList.add('open');
+        document.body.classList.add('lightbox-open');
+    }
+
+    function close() {
+        overlay.classList.remove('open');
+        document.body.classList.remove('lightbox-open');
+    }
+
+    function prev() { current = (current - 1 + imgs.length) % imgs.length; update(); }
+    function next() { current = (current + 1) % imgs.length; update(); }
+
+    imgs.forEach(function(img, i) {
+        img.addEventListener('click', function(e) {
+            e.preventDefault();
+            open(i);
+        });
+    });
+
+    overlay.querySelector('.lightbox-close').addEventListener('click', close);
+    overlay.querySelector('.lightbox-prev').addEventListener('click', function(e) {
+        e.stopPropagation(); prev();
+    });
+    overlay.querySelector('.lightbox-next').addEventListener('click', function(e) {
+        e.stopPropagation(); next();
+    });
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay || e.target.classList.contains('lightbox-figure')) close();
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (!overlay.classList.contains('open')) return;
+        if (e.key === 'Escape') close();
+        else if (e.key === 'ArrowLeft') prev();
+        else if (e.key === 'ArrowRight') next();
+    });
+})();
+</script>
+"""
+
+
 def html_page(title, body, active_page=None, head_extra="", scripts="", wide=False):
     nav_links = ""
     for href, label in NAV_PAGES:
         cls = ' class="active"' if href == active_page else ""
         nav_links += f'<a href="{href}"{cls}>{label}</a>'
-    topbar = f"""\
-<div class="topbar">
-<a href="index.html" class="site-name">Fer&eth;adagb&oacute;k</a>
+    site_header = f"""\
+<header class="site-header">
+<div class="site-header-inner">
+<a class="site-title" href="index.html">Kristj&aacute;n og India Br&iacute;et &mdash; Fer&eth; um Ind&oacute;nes&iacute;u</a>
 <nav>{nav_links}</nav>
-</div>"""
+</div>
+</header>"""
 
     container_class = "container container--wide" if wide else "container"
     return f"""\
@@ -1027,11 +1324,11 @@ def html_page(title, body, active_page=None, head_extra="", scripts="", wide=Fal
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+{site_header}
 <div class="{container_class}">
-{topbar}
 {body}
 </div>
-{scripts}</body>
+{scripts}{LIGHTBOX_SCRIPT}</body>
 </html>
 """
 
@@ -1242,35 +1539,36 @@ def build():
 
     landing_body = f"""\
 <div class="hero-compact">
-Fer&eth;adagb&oacute;k<span class="sep">&middot;</span>1. ma&iacute; &ndash; 6. j&uacute;n&iacute; 2026<span class="sep">&middot;</span>Kristj&aacute;n og India
+1. ma&iacute; &ndash; 6. j&uacute;n&iacute; 2026<span class="sep">&middot;</span>{pluralize_is(entry_count, 'f&aelig;rsla', 'f&aelig;rslur')}<span class="sep">&middot;</span>{pluralize_is(image_count, 'mynd', 'myndir')}<span class="sep">&middot;</span>{pluralize_is(video_count, 'myndband', 'myndb&ouml;nd')}
 </div>
-<div class="dagbok-layout">
-<aside class="map-pane">
-<div class="map-wrap">
-<div id="map" class="map-container"></div>
-<div class="map-hint">Smelltu &aacute; punktana til a&eth; opna f&aelig;rslur</div>
-</div>
-<div class="map-stats">
-<span>{pluralize_is(entry_count, 'f&aelig;rsla', 'f&aelig;rslur')}</span>
-<span>{pluralize_is(image_count, 'mynd', 'myndir')}</span>
-<span>{pluralize_is(video_count, 'myndband', 'myndb&ouml;nd')}</span>
-</div>
-</aside>
+<div class="dagbok-layout" id="dagbok-layout">
+<button type="button" class="map-toggle" id="map-toggle" aria-label="Skipta um sýnileika korts">
+<span class="map-toggle-icon" aria-hidden="true">&#x25B8;</span>
+<span class="map-toggle-text">Fela kort</span>
+</button>
 <main class="journal-pane">
 <div class="dagbok-accordion">
 {accordion_html}
 </div>
 </main>
+<aside class="map-pane">
+<div class="map-wrap">
+<div id="map" class="map-container"></div>
+<div class="map-hint">Smelltu &aacute; punktana til a&eth; opna f&aelig;rslur</div>
+</div>
+</aside>
 </div>"""
 
     map_script = f"""\
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 (function() {{
+    // --- Leaflet map ---
     var map = L.map('map', {{
         zoomControl: false,
         attributionControl: false
     }});
+    window._dagbokMap = map;
 
     L.control.zoom({{ position: 'bottomright' }}).addTo(map);
 
@@ -1413,6 +1711,36 @@ Fer&eth;adagb&oacute;k<span class="sep">&middot;</span>1. ma&iacute; &ndash; 6. 
         var bounds = L.latLngBounds(markers.map(function(m) {{ return [m.lat, m.lng]; }}));
         map.fitBounds(bounds, {{ padding: [60, 60], maxZoom: 8 }});
     }}
+
+    // --- Map toggle (open/close map column) ---
+    var layout = document.getElementById('dagbok-layout');
+    var toggleBtn = document.getElementById('map-toggle');
+    var toggleText = toggleBtn ? toggleBtn.querySelector('.map-toggle-text') : null;
+    var toggleIcon = toggleBtn ? toggleBtn.querySelector('.map-toggle-icon') : null;
+    var STORAGE_KEY = 'dagbok-map-hidden';
+
+    function applyMapHidden(hidden) {{
+        if (!layout) return;
+        layout.classList.toggle('map-hidden', hidden);
+        if (toggleText) toggleText.textContent = hidden ? 'S\\u00FDna kort' : 'Fela kort';
+        if (toggleIcon) toggleIcon.innerHTML = hidden ? '&#x25C2;' : '&#x25B8;';
+        try {{ localStorage.setItem(STORAGE_KEY, hidden ? '1' : '0'); }} catch (e) {{}}
+        if (!hidden) {{
+            setTimeout(function() {{ map.invalidateSize(); }}, 360);
+        }}
+    }}
+
+    if (toggleBtn) {{
+        toggleBtn.addEventListener('click', function() {{
+            var nowHidden = !layout.classList.contains('map-hidden');
+            applyMapHidden(nowHidden);
+        }});
+    }}
+
+    // Restore saved state (after map fully initialized)
+    try {{
+        if (localStorage.getItem(STORAGE_KEY) === '1') applyMapHidden(true);
+    }} catch (e) {{}}
 }})();
 </script>"""
 
