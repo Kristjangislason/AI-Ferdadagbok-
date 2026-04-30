@@ -14,5 +14,10 @@
     "lat": -2.6853911,
     "lng": 111.6322278,
     "name": "Pangkalan Bun"
+  },
+  "makassar": {
+    "lat": -5.1342962,
+    "lng": 119.4124282,
+    "name": "Makassar"
   }
 }
