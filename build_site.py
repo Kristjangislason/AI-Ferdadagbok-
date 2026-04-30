@@ -327,6 +327,74 @@ body {
 
 /* --- Article --- */
 
+.back-link,
+.back-link:visited {
+    display: inline-block;
+    color: var(--text-dim);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    margin-bottom: 40px;
+    transition: color 0.2s;
+}
+
+.back-link:hover {
+    color: var(--text);
+}
+
+.entry-pager {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 64px;
+    padding-top: 32px;
+    border-top: 1px solid rgba(196, 148, 74, 0.15);
+}
+
+.entry-pager-prev,
+.entry-pager-next,
+.entry-pager-prev:visited,
+.entry-pager-next:visited {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    text-decoration: none;
+    color: var(--text);
+    min-width: 0;
+    transition: opacity 0.2s;
+}
+
+.entry-pager-prev { grid-column: 1; }
+
+.entry-pager-next {
+    grid-column: 2;
+    text-align: right;
+    align-items: flex-end;
+}
+
+.entry-pager-prev:hover,
+.entry-pager-next:hover {
+    opacity: 0.7;
+}
+
+.entry-pager .pager-direction {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.entry-pager .pager-title {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 18px;
+    line-height: 1.3;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
 article h1 {
     font-family: 'Cormorant Garamond', Georgia, serif;
     font-size: 44px;
@@ -687,6 +755,13 @@ article figcaption {
     .map-stats span { font-size: 11px; }
     .gallery-grid { columns: 1; }
     .map-container { height: 260px; }
+    .entry-pager { grid-template-columns: 1fr; gap: 20px; }
+    .entry-pager-next {
+        grid-column: 1;
+        text-align: left;
+        align-items: flex-start;
+    }
+    .back-link { margin-bottom: 28px; }
 }
 """
 
@@ -717,6 +792,29 @@ def format_date_is(date_str):
 def pluralize_is(count, singular, plural):
     """Pick Icelandic singular/plural based on count (n == 1 → singular)."""
     return f"{count} {singular if count == 1 else plural}"
+
+
+def render_entry_pager(prev_entry, next_entry):
+    """Prev/next links shown at the bottom of an entry page."""
+    if not prev_entry and not next_entry:
+        return ""
+    parts = ['<nav class="entry-pager">']
+    if prev_entry:
+        parts.append(
+            f'<a class="entry-pager-prev" href="{prev_entry["slug"]}.html">'
+            f'<span class="pager-direction">&larr; Fyrri f&aelig;rsla</span>'
+            f'<span class="pager-title">{prev_entry["title"]}</span>'
+            f'</a>'
+        )
+    if next_entry:
+        parts.append(
+            f'<a class="entry-pager-next" href="{next_entry["slug"]}.html">'
+            f'<span class="pager-direction">N&aelig;sta f&aelig;rsla &rarr;</span>'
+            f'<span class="pager-title">{next_entry["title"]}</span>'
+            f'</a>'
+        )
+    parts.append('</nav>')
+    return "".join(parts)
 
 
 def html_page(title, body, active_page=None, head_extra="", scripts=""):
@@ -810,9 +908,17 @@ def build():
     entry_files = sorted(ENTRIES_DIR.glob("*.md"))
     entries = [parse_entry(f) for f in entry_files]
 
-    for entry in entries:
+    for i, entry in enumerate(entries):
         date_is = format_date_is(entry["date"])
-        body = f'<article><h1>{entry["title"]}</h1><div class="entry-date">{date_is}</div>{entry["body_html"]}</article>'
+        prev_entry = entries[i - 1] if i > 0 else None
+        next_entry = entries[i + 1] if i + 1 < len(entries) else None
+        body = (
+            f'<a class="back-link" href="blog.html">&larr; Til baka &iacute; Dagb&oacute;k</a>'
+            f'<article><h1>{entry["title"]}</h1>'
+            f'<div class="entry-date">{date_is}</div>'
+            f'{entry["body_html"]}</article>'
+            f'{render_entry_pager(prev_entry, next_entry)}'
+        )
         page = html_page(entry["title"], body, active_page="blog.html")
         (DOCS_DIR / f'{entry["slug"]}.html').write_text(page)
 
