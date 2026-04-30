@@ -299,17 +299,6 @@ article figcaption {
     animation: pulse 2.5s ease-out infinite;
 }
 
-.map-stop .stop-dot {
-    width: 8px;
-    height: 8px;
-    background: rgba(196, 148, 74, 0.2);
-    border: 1.5px solid rgba(196, 148, 74, 0.5);
-    border-radius: 50%;
-    position: absolute;
-    top: 1px;
-    left: 1px;
-}
-
 .map-stats {
     display: flex;
     justify-content: center;

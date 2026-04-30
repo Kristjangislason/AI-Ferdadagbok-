@@ -19,4 +19,8 @@ the page body is rendered verbatim on the site. No AI rewriting.
 - **Date**: if the title starts with `YYYY-MM-DD` it's used as the entry date
   (and stripped from the displayed title). Otherwise the page's Notion
   `created_time` is used.
+- **Map pins**: include a line `Staðir: Jakarta, Tana Toraja` (or `Staður: Jakarta`)
+  anywhere in the body to drop pins on the landing-page map. Comma-separated,
+  case-insensitive, hidden from the rendered page. If absent, the build falls
+  back to guessing one place from the entry title.
 - Images embedded in the page are downloaded into `images/` and shown on the site.

@@ -16,19 +16,6 @@ ENTRIES_DIR = Path(__file__).parent / "entries"
 IMAGES_DIR = Path(__file__).parent / "images"
 DOCS_DIR = Path(__file__).parent / "docs"
 
-# The planned route as coordinate pairs (for the route line on the map)
-ROUTE_COORDS = [
-    [-6.2088, 106.8456],   # Jakarta
-    [-2.7833, 111.9000],   # Tanjung Puting, Borneo
-    [-5.1477, 119.4327],   # Makassar, Sulawesi
-    [-2.9667, 119.9000],   # Tana Toraja, Sulawesi
-    [-5.1477, 119.4327],   # Makassar (back)
-    [-8.4967, 119.8889],   # Labuan Bajo, Flores
-    [-8.7914, 120.9722],   # Bajawa
-    [-8.8488, 121.6608],   # Ende
-    [-6.2088, 106.8456],   # Jakarta (return)
-]
-
 GEOCACHE_PATH = Path(__file__).parent / ".geocache.json"
 
 
@@ -77,47 +64,76 @@ def geocode(place_name):
     return cache[key]
 
 
-def extract_place_name(title):
-    """Try to pull a place name from an entry title.
+LOCATION_LINE_RE = re.compile(
+    r"^\s*Sta[ðd][iu]r\s*:\s*(.+?)\s*$",
+    re.MULTILINE | re.IGNORECASE,
+)
 
-    Titles look like "May 7 — First Day in Jakarta" or
-    "May 5 — Fyrsta kvöldið í Jakarta". We grab the last
-    significant word(s) after common prepositions.
+
+def extract_locations_from_body(md_text):
+    """Pull a 'Staðir: A, B, C' (or 'Staður: A') line out of the body.
+
+    Returns (places_list, cleaned_md). The line is removed from the body
+    so it doesn't render on the page.
     """
-    # Strip the date prefix: "May 7 — " or "May 3rd — "
-    match = re.search(r"—\s*(.+)$", title)
-    if not match:
-        match = re.search(r"-\s*(.+)$", title)
-    if not match:
-        return None
+    m = LOCATION_LINE_RE.search(md_text)
+    if not m:
+        return [], md_text
+    places = [p.strip() for p in m.group(1).split(",") if p.strip()]
+    cleaned = LOCATION_LINE_RE.sub("", md_text, count=1).strip()
+    return places, cleaned
 
-    text = match.group(1).strip()
 
-    # Look for place after "in", "at", "to", "from", "í" (Icelandic)
-    place_match = re.search(r"\b(?:in|at|to|from|near|around|í|til|frá)\s+(.+)$", text, re.IGNORECASE)
+def extract_place_from_title(title):
+    """Title-based fallback when the body has no Staðir: line."""
+    text = title.strip()
+    # Drop a leading date or dash prefix if present
+    m = re.search(r"[—-]\s*(.+)$", text)
+    if m:
+        text = m.group(1).strip()
+
+    # Look for a place after a preposition: in/at/to/from (en) or í/til/frá (is)
+    place_match = re.search(
+        r"\b(?:in|at|to|from|near|around|í|til|frá)\s+(.+)$",
+        text,
+        re.IGNORECASE,
+    )
     if place_match:
-        return place_match.group(1).strip()
+        return place_match.group(1).strip().rstrip(".,;:")
 
-    # Fallback: use the last capitalized word(s) as a place guess
+    # Fallback: trailing capitalized word(s)
     words = text.split()
     place_words = []
     for word in reversed(words):
-        if word[0].isupper() or (place_words and word.lower() in ("the", "of", "el", "la")):
+        if word and (word[0].isupper() or (place_words and word.lower() in ("the", "of", "el", "la"))):
             place_words.insert(0, word)
         else:
             break
     if place_words:
-        return " ".join(place_words)
-
+        return " ".join(place_words).rstrip(".,;:")
     return None
 
 
-def locate_entry(entry):
-    """Try to find coordinates for an entry by geocoding its title."""
-    place = extract_place_name(entry["title"])
-    if not place:
-        return None
-    return geocode(place)
+def locate_entry_places(entry):
+    """Geocode every place declared in the entry. Returns a list of locations."""
+    places = list(entry.get("locations") or [])
+    if not places:
+        guess = extract_place_from_title(entry["title"])
+        if guess:
+            places = [guess]
+
+    locations = []
+    seen = set()
+    for p in places:
+        loc = geocode(p)
+        if not loc:
+            continue
+        key = (round(loc["lat"], 4), round(loc["lng"], 4))
+        if key in seen:
+            continue
+        seen.add(key)
+        locations.append(loc)
+    return locations
 
 BASE_STYLE = """\
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -421,17 +437,6 @@ article figcaption {
     animation: pulse 2.5s ease-out infinite;
 }
 
-.map-stop .stop-dot {
-    width: 8px;
-    height: 8px;
-    background: rgba(196, 148, 74, 0.2);
-    border: 1.5px solid rgba(196, 148, 74, 0.5);
-    border-radius: 50%;
-    position: absolute;
-    top: 1px;
-    left: 1px;
-}
-
 .map-stats {
     display: flex;
     justify-content: center;
@@ -655,6 +660,11 @@ def format_date_is(date_str):
     return f"{int(d)}. {month} {y}"
 
 
+def pluralize_is(count, singular, plural):
+    """Pick Icelandic singular/plural based on count (n == 1 → singular)."""
+    return f"{count} {singular if count == 1 else plural}"
+
+
 def html_page(title, body, active_page=None, head_extra="", scripts=""):
     nav_links = ""
     for href, label in NAV_PAGES:
@@ -703,6 +713,8 @@ def parse_entry(filepath):
 
     # Convert to HTML (skip the title line, we render it separately)
     body_md = text[title_match.end():].strip() if title_match else text
+    # Pull "Staðir: A, B" out of the body — used for map pins, hidden from the page
+    locations, body_md = extract_locations_from_body(body_md)
     # Rewrite image paths: ../images/ → images/ (entries are in docs/, images in docs/images/)
     body_md = body_md.replace("](../images/", "](images/")
     body_html = markdown.markdown(body_md)
@@ -721,6 +733,7 @@ def parse_entry(filepath):
         "date": date_str,
         "body_html": body_html,
         "slug": filepath.stem,
+        "locations": locations,
     }
 
 
@@ -807,7 +820,7 @@ def build():
                 f'allowfullscreen loading="lazy"></iframe>'
                 f'</div>'
                 f'<div class="video-info">'
-                f'<div class="video-title">{v.get("title", "Untitled")}</div>'
+                f'<div class="video-title">{v.get("title", "&Aacute;n titils")}</div>'
                 f'<div class="video-meta">{v.get("date", "")}{location_html}</div>'
                 f'</div></div>\n'
             )
@@ -817,22 +830,26 @@ def build():
     (DOCS_DIR / "videos.html").write_text(videos_page)
     video_count = len(videos)
 
-    # Build map data — group entries by location
+    # Build map data — one pin per location, listing every entry that mentions it
     location_groups = {}
     for entry in entries:
-        loc = locate_entry(entry)
-        if loc:
-            key = (loc["lat"], loc["lng"])
+        for loc in locate_entry_places(entry):
+            key = (round(loc["lat"], 4), round(loc["lng"], 4))
             if key not in location_groups:
-                location_groups[key] = {"name": loc["name"], "lat": loc["lat"], "lng": loc["lng"], "entries": []}
-            location_groups[key]["entries"].append({
-                "title": entry["title"],
-                "date": entry["date"],
-                "slug": entry["slug"],
-            })
+                location_groups[key] = {
+                    "name": loc["name"],
+                    "lat": loc["lat"],
+                    "lng": loc["lng"],
+                    "entries": [],
+                }
+            if not any(e["slug"] == entry["slug"] for e in location_groups[key]["entries"]):
+                location_groups[key]["entries"].append({
+                    "title": entry["title"],
+                    "date": format_date_is(entry["date"]),
+                    "slug": entry["slug"],
+                })
 
-    map_markers_json = json.dumps(list(location_groups.values()))
-    route_json = json.dumps(ROUTE_COORDS)
+    map_markers_json = json.dumps(list(location_groups.values()), ensure_ascii=False)
 
     # Build landing page (index) — custom layout with map
     entry_count = len(entries)
@@ -841,7 +858,7 @@ def build():
     landing_body = f"""\
 <div class="landing-hero">
 <div class="hero-title">Fer&eth; um Ind&oacute;nes&iacute;u</div>
-<div class="hero-route">Jakarta &rarr; B&oacute;rneó &rarr; S&uacute;lawesi &rarr; Flores &rarr; Jakarta</div>
+<div class="hero-route">Kristj&aacute;n G&iacute;slason og India Br&iacute;et B&ouml;&eth;varsd&oacute;ttir Terry</div>
 <div class="hero-dates">1. ma&iacute; &ndash; 6. j&uacute;n&iacute; 2026</div>
 </div>
 <div class="map-section">
@@ -850,9 +867,9 @@ def build():
 <div class="map-hint">Smelltu &aacute; punktana til a&eth; lesa f&aelig;rslur</div>
 </div>
 <div class="map-stats">
-<span>{entry_count} f&aelig;rslur</span>
-<span>{image_count} myndir</span>
-<span>{video_count} myndb&ouml;nd</span>
+<span>{pluralize_is(entry_count, 'f&aelig;rsla', 'f&aelig;rslur')}</span>
+<span>{pluralize_is(image_count, 'mynd', 'myndir')}</span>
+<span>{pluralize_is(video_count, 'myndband', 'myndb&ouml;nd')}</span>
 </div>
 </div>"""
 
@@ -863,7 +880,7 @@ def build():
     var map = L.map('map', {{
         zoomControl: false,
         attributionControl: false
-    }}).setView([-4.5, 115.5], 5);
+    }});
 
     L.control.zoom({{ position: 'bottomright' }}).addTo(map);
 
@@ -874,25 +891,7 @@ def build():
         maxZoom: 13
     }}).addTo(map);
 
-    var route = {route_json};
-    L.polyline(route, {{
-        color: '#C4944A',
-        weight: 2,
-        opacity: 0.45,
-        dashArray: '6, 8',
-        smoothFactor: 1.5
-    }}).addTo(map);
-
     var markers = {map_markers_json};
-    if (markers.length > 1) {{
-        var travelled = markers.map(function(m) {{ return [m.lat, m.lng]; }});
-        L.polyline(travelled, {{
-            color: '#D45D4C',
-            weight: 2.5,
-            opacity: 0.8,
-            smoothFactor: 1.5
-        }}).addTo(map);
-    }}
 
     var pinIcon = L.divIcon({{
         className: 'map-pin',
@@ -902,32 +901,24 @@ def build():
         popupAnchor: [0, -14]
     }});
 
-    var stopIcon = L.divIcon({{
-        className: 'map-stop',
-        html: '<div class="stop-dot"></div>',
-        iconSize: [10, 10],
-        iconAnchor: [5, 5]
-    }});
-
-    var visitedKeys = {{}};
-    markers.forEach(function(m) {{ visitedKeys[m.lat + ',' + m.lng] = true; }});
-    route.forEach(function(coord) {{
-        var key = coord[0] + ',' + coord[1];
-        if (!visitedKeys[key]) {{
-            visitedKeys[key] = true;
-            L.marker(coord, {{ icon: stopIcon }}).addTo(map);
-        }}
-    }});
-
     markers.forEach(function(loc) {{
-        var popupLines = '<div class="popup-title">' + loc.name + '</div>';
+        var popup = '<div class="popup-title">' + loc.name + '</div>';
         loc.entries.forEach(function(e) {{
-            popupLines += '<a href="' + e.slug + '.html"><span class="popup-date">' + e.date + '</span> ' + e.title.replace(/.*?—\\s*/, '') + '</a><br>';
+            popup += '<a href="' + e.slug + '.html"><span class="popup-date">' + e.date + '</span> ' + e.title + '</a><br>';
         }});
         L.marker([loc.lat, loc.lng], {{ icon: pinIcon }})
-            .bindPopup(popupLines, {{ maxWidth: 240 }})
+            .bindPopup(popup, {{ maxWidth: 260 }})
             .addTo(map);
     }});
+
+    if (markers.length === 0) {{
+        map.setView([-4.5, 115.5], 5);
+    }} else if (markers.length === 1) {{
+        map.setView([markers[0].lat, markers[0].lng], 7);
+    }} else {{
+        var bounds = L.latLngBounds(markers.map(function(m) {{ return [m.lat, m.lng]; }}));
+        map.fitBounds(bounds, {{ padding: [60, 60], maxZoom: 8 }});
+    }}
 }})();
 </script>"""
 

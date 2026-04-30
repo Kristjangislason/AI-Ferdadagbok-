@@ -19,7 +19,7 @@
 </div>
 <div class="landing-hero">
 <div class="hero-title">Fer&eth; um Ind&oacute;nes&iacute;u</div>
-<div class="hero-route">Jakarta &rarr; B&oacute;rneó &rarr; S&uacute;lawesi &rarr; Flores &rarr; Jakarta</div>
+<div class="hero-route">Kristj&aacute;n G&iacute;slason og India Br&iacute;et B&ouml;&eth;varsd&oacute;ttir Terry</div>
 <div class="hero-dates">1. ma&iacute; &ndash; 6. j&uacute;n&iacute; 2026</div>
 </div>
 <div class="map-section">
@@ -29,7 +29,7 @@
 </div>
 <div class="map-stats">
 <span>2 f&aelig;rslur</span>
-<span>1 myndir</span>
+<span>1 mynd</span>
 <span>0 myndb&ouml;nd</span>
 </div>
 </div>
@@ -40,7 +40,7 @@
     var map = L.map('map', {
         zoomControl: false,
         attributionControl: false
-    }).setView([-4.5, 115.5], 5);
+    });
 
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
@@ -51,25 +51,7 @@
         maxZoom: 13
     }).addTo(map);
 
-    var route = [[-6.2088, 106.8456], [-2.7833, 111.9], [-5.1477, 119.4327], [-2.9667, 119.9], [-5.1477, 119.4327], [-8.4967, 119.8889], [-8.7914, 120.9722], [-8.8488, 121.6608], [-6.2088, 106.8456]];
-    L.polyline(route, {
-        color: '#C4944A',
-        weight: 2,
-        opacity: 0.45,
-        dashArray: '6, 8',
-        smoothFactor: 1.5
-    }).addTo(map);
-
-    var markers = [{"name": "Jakarta", "lat": -6.1754049, "lng": 106.827168, "entries": [{"title": "Dagur 1 - Jakarta", "date": "2026-04-30", "slug": "2026-04-30-dagur-1-jakarta"}]}, {"name": "Tanjung Puting", "lat": -3.5038484, "lng": 111.7705804, "entries": [{"title": "Dagur 2 - Tanjung Puting", "date": "2026-04-30", "slug": "2026-04-30-dagur-2-tanjung-puting"}]}];
-    if (markers.length > 1) {
-        var travelled = markers.map(function(m) { return [m.lat, m.lng]; });
-        L.polyline(travelled, {
-            color: '#D45D4C',
-            weight: 2.5,
-            opacity: 0.8,
-            smoothFactor: 1.5
-        }).addTo(map);
-    }
+    var markers = [{"name": "Jakarta", "lat": -6.1754049, "lng": 106.827168, "entries": [{"title": "Dagur 1 - Jakarta", "date": "30. apríl 2026", "slug": "2026-04-30-dagur-1-jakarta"}]}, {"name": "Tanjung Puting", "lat": -3.5038484, "lng": 111.7705804, "entries": [{"title": "Dagur 2 - Tanjung Puting", "date": "30. apríl 2026", "slug": "2026-04-30-dagur-2-tanjung-puting"}]}];
 
     var pinIcon = L.divIcon({
         className: 'map-pin',
@@ -79,32 +61,24 @@
         popupAnchor: [0, -14]
     });
 
-    var stopIcon = L.divIcon({
-        className: 'map-stop',
-        html: '<div class="stop-dot"></div>',
-        iconSize: [10, 10],
-        iconAnchor: [5, 5]
-    });
-
-    var visitedKeys = {};
-    markers.forEach(function(m) { visitedKeys[m.lat + ',' + m.lng] = true; });
-    route.forEach(function(coord) {
-        var key = coord[0] + ',' + coord[1];
-        if (!visitedKeys[key]) {
-            visitedKeys[key] = true;
-            L.marker(coord, { icon: stopIcon }).addTo(map);
-        }
-    });
-
     markers.forEach(function(loc) {
-        var popupLines = '<div class="popup-title">' + loc.name + '</div>';
+        var popup = '<div class="popup-title">' + loc.name + '</div>';
         loc.entries.forEach(function(e) {
-            popupLines += '<a href="' + e.slug + '.html"><span class="popup-date">' + e.date + '</span> ' + e.title.replace(/.*?—\s*/, '') + '</a><br>';
+            popup += '<a href="' + e.slug + '.html"><span class="popup-date">' + e.date + '</span> ' + e.title + '</a><br>';
         });
         L.marker([loc.lat, loc.lng], { icon: pinIcon })
-            .bindPopup(popupLines, { maxWidth: 240 })
+            .bindPopup(popup, { maxWidth: 260 })
             .addTo(map);
     });
+
+    if (markers.length === 0) {
+        map.setView([-4.5, 115.5], 5);
+    } else if (markers.length === 1) {
+        map.setView([markers[0].lat, markers[0].lng], 7);
+    } else {
+        var bounds = L.latLngBounds(markers.map(function(m) { return [m.lat, m.lng]; }));
+        map.fitBounds(bounds, { padding: [60, 60], maxZoom: 8 });
+    }
 })();
 </script></body>
 </html>
