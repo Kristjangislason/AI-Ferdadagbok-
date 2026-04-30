@@ -469,21 +469,7 @@ article figcaption {
     font-style: italic;
 }
 
-/* --- Landing: compact hero + map/accordion layout --- */
-
-.hero-compact {
-    font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 17px;
-    font-style: italic;
-    color: var(--text-dim);
-    text-align: center;
-    margin: -16px 0 32px;
-}
-
-.hero-compact .sep {
-    margin: 0 10px;
-    opacity: 0.4;
-}
+/* --- Landing: map/accordion layout --- */
 
 .dagbok-layout {
     display: grid;
@@ -511,41 +497,66 @@ article figcaption {
     align-self: start;
 }
 
-.journal-pane {
-    grid-area: journal;
-    min-width: 0;
-}
-
-.map-toggle {
+/* "Fela kort" — sits over the map's top-right corner like a Leaflet control */
+.map-hide-toggle {
     position: absolute;
-    top: -8px;
-    right: 0;
-    background: rgba(196, 148, 74, 0.08);
-    color: var(--text-dim);
-    border: 1px solid rgba(196, 148, 74, 0.2);
+    top: 12px;
+    right: 12px;
+    z-index: 1000;
+    background: rgba(19, 30, 23, 0.85);
+    color: var(--text);
+    border: 1px solid rgba(237, 232, 223, 0.18);
     border-radius: 999px;
-    padding: 7px 14px 7px 12px;
+    padding: 7px 14px;
     font-size: 11px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     cursor: pointer;
-    transition: background 0.2s, color 0.2s, border-color 0.2s;
-    z-index: 5;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
+    transition: background 0.2s, border-color 0.2s;
+    font-family: inherit;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.map-hide-toggle:hover {
+    background: rgba(19, 30, 23, 0.95);
+    border-color: rgba(237, 232, 223, 0.35);
+}
+
+/* "Sýna kort" — only visible when map is hidden, sits at top of journal */
+.map-show-toggle {
+    display: none;
+    align-self: flex-end;
+    margin: 0 0 16px;
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid rgba(196, 148, 74, 0.25);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
     font-family: inherit;
 }
 
-.map-toggle:hover {
-    background: rgba(196, 148, 74, 0.18);
+.map-show-toggle:hover {
     color: var(--text);
-    border-color: rgba(196, 148, 74, 0.4);
+    border-color: rgba(196, 148, 74, 0.5);
+    background: rgba(196, 148, 74, 0.08);
 }
 
-.map-toggle .map-toggle-icon {
-    font-size: 13px;
-    line-height: 1;
+.dagbok-layout.map-hidden .map-show-toggle {
+    display: inline-flex;
+}
+
+.journal-pane {
+    grid-area: journal;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 /* --- Map --- */
@@ -948,7 +959,7 @@ article figcaption {
     .video-grid { grid-template-columns: 1fr; }
     .entry-row > summary { grid-template-columns: 90px 1fr auto 14px; gap: 14px; }
     .entry-row-title { font-size: 19px; }
-    .map-toggle { top: -36px; font-size: 10px; }
+    .map-hide-toggle { top: 12px; right: 12px; }
 }
 
 @media (max-width: 600px) {
@@ -960,10 +971,6 @@ article figcaption {
     article h1 { font-size: 32px; }
     .entry-list a { flex-direction: column; gap: 4px; }
     .entry-title { font-size: 19px; }
-    .hero-compact { font-size: 14px; margin-top: -8px; }
-    .hero-compact .sep { margin: 0 6px; }
-    .map-stats { gap: 20px; }
-    .map-stats span { font-size: 11px; }
     .gallery-grid { columns: 1; }
     .map-container { height: 260px; }
     .entry-pager { grid-template-columns: 1fr; gap: 20px; }
@@ -1538,20 +1545,17 @@ def build():
         )
 
     landing_body = f"""\
-<div class="hero-compact">
-1. ma&iacute; &ndash; 6. j&uacute;n&iacute; 2026<span class="sep">&middot;</span>{pluralize_is(entry_count, 'f&aelig;rsla', 'f&aelig;rslur')}<span class="sep">&middot;</span>{pluralize_is(image_count, 'mynd', 'myndir')}<span class="sep">&middot;</span>{pluralize_is(video_count, 'myndband', 'myndb&ouml;nd')}
-</div>
 <div class="dagbok-layout" id="dagbok-layout">
-<button type="button" class="map-toggle" id="map-toggle" aria-label="Skipta um sýnileika korts">
-<span class="map-toggle-icon" aria-hidden="true">&#x25B8;</span>
-<span class="map-toggle-text">Fela kort</span>
-</button>
 <main class="journal-pane">
+<button type="button" class="map-show-toggle" id="map-show-toggle">S&yacute;na kort &rarr;</button>
 <div class="dagbok-accordion">
 {accordion_html}
 </div>
 </main>
 <aside class="map-pane">
+<button type="button" class="map-hide-toggle" id="map-hide-toggle" aria-label="Fela kort">
+&larr; Fela kort
+</button>
 <div class="map-wrap">
 <div id="map" class="map-container"></div>
 <div class="map-hint">Smelltu &aacute; punktana til a&eth; opna f&aelig;rslur</div>
@@ -1714,28 +1718,21 @@ def build():
 
     // --- Map toggle (open/close map column) ---
     var layout = document.getElementById('dagbok-layout');
-    var toggleBtn = document.getElementById('map-toggle');
-    var toggleText = toggleBtn ? toggleBtn.querySelector('.map-toggle-text') : null;
-    var toggleIcon = toggleBtn ? toggleBtn.querySelector('.map-toggle-icon') : null;
+    var hideBtn = document.getElementById('map-hide-toggle');
+    var showBtn = document.getElementById('map-show-toggle');
     var STORAGE_KEY = 'dagbok-map-hidden';
 
     function applyMapHidden(hidden) {{
         if (!layout) return;
         layout.classList.toggle('map-hidden', hidden);
-        if (toggleText) toggleText.textContent = hidden ? 'S\\u00FDna kort' : 'Fela kort';
-        if (toggleIcon) toggleIcon.innerHTML = hidden ? '&#x25C2;' : '&#x25B8;';
         try {{ localStorage.setItem(STORAGE_KEY, hidden ? '1' : '0'); }} catch (e) {{}}
         if (!hidden) {{
             setTimeout(function() {{ map.invalidateSize(); }}, 360);
         }}
     }}
 
-    if (toggleBtn) {{
-        toggleBtn.addEventListener('click', function() {{
-            var nowHidden = !layout.classList.contains('map-hidden');
-            applyMapHidden(nowHidden);
-        }});
-    }}
+    if (hideBtn) hideBtn.addEventListener('click', function() {{ applyMapHidden(true); }});
+    if (showBtn) showBtn.addEventListener('click', function() {{ applyMapHidden(false); }});
 
     // Restore saved state (after map fully initialized)
     try {{

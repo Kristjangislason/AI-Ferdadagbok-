@@ -19,15 +19,9 @@
 </div>
 </header>
 <div class="container container--wide">
-<div class="hero-compact">
-1. ma&iacute; &ndash; 6. j&uacute;n&iacute; 2026<span class="sep">&middot;</span>3 f&aelig;rslur<span class="sep">&middot;</span>1 mynd<span class="sep">&middot;</span>0 myndb&ouml;nd
-</div>
 <div class="dagbok-layout" id="dagbok-layout">
-<button type="button" class="map-toggle" id="map-toggle" aria-label="Skipta um sýnileika korts">
-<span class="map-toggle-icon" aria-hidden="true">&#x25B8;</span>
-<span class="map-toggle-text">Fela kort</span>
-</button>
 <main class="journal-pane">
+<button type="button" class="map-show-toggle" id="map-show-toggle">S&yacute;na kort &rarr;</button>
 <div class="dagbok-accordion">
 <details class="entry-row" id="2026-04-30-dagur-3-sulawesi"><summary><span class="entry-row-date">30. apríl 2026</span><span class="entry-row-title">Dagur 3 - Sulawesi</span><span class="entry-row-places">Makassar</span><span class="entry-row-chevron">&rsaquo;</span></summary><div class="entry-row-body"><article><p>For the text you wrote in Polarsteps, your main options are:</p>
 <ol>
@@ -53,6 +47,9 @@ A developer can parse your Polarsteps export and turn the stories into pages/car
 </div>
 </main>
 <aside class="map-pane">
+<button type="button" class="map-hide-toggle" id="map-hide-toggle" aria-label="Fela kort">
+&larr; Fela kort
+</button>
 <div class="map-wrap">
 <div id="map" class="map-container"></div>
 <div class="map-hint">Smelltu &aacute; punktana til a&eth; opna f&aelig;rslur</div>
@@ -214,28 +211,21 @@ A developer can parse your Polarsteps export and turn the stories into pages/car
 
     // --- Map toggle (open/close map column) ---
     var layout = document.getElementById('dagbok-layout');
-    var toggleBtn = document.getElementById('map-toggle');
-    var toggleText = toggleBtn ? toggleBtn.querySelector('.map-toggle-text') : null;
-    var toggleIcon = toggleBtn ? toggleBtn.querySelector('.map-toggle-icon') : null;
+    var hideBtn = document.getElementById('map-hide-toggle');
+    var showBtn = document.getElementById('map-show-toggle');
     var STORAGE_KEY = 'dagbok-map-hidden';
 
     function applyMapHidden(hidden) {
         if (!layout) return;
         layout.classList.toggle('map-hidden', hidden);
-        if (toggleText) toggleText.textContent = hidden ? 'S\u00FDna kort' : 'Fela kort';
-        if (toggleIcon) toggleIcon.innerHTML = hidden ? '&#x25C2;' : '&#x25B8;';
         try { localStorage.setItem(STORAGE_KEY, hidden ? '1' : '0'); } catch (e) {}
         if (!hidden) {
             setTimeout(function() { map.invalidateSize(); }, 360);
         }
     }
 
-    if (toggleBtn) {
-        toggleBtn.addEventListener('click', function() {
-            var nowHidden = !layout.classList.contains('map-hidden');
-            applyMapHidden(nowHidden);
-        });
-    }
+    if (hideBtn) hideBtn.addEventListener('click', function() { applyMapHidden(true); });
+    if (showBtn) showBtn.addEventListener('click', function() { applyMapHidden(false); });
 
     // Restore saved state (after map fully initialized)
     try {
