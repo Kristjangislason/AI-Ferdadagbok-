@@ -187,6 +187,10 @@ BASE_STYLE = """\
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 a, a:visited { color: inherit; }
 
+/* Reserve space for the scrollbar so the layout doesn't shift when content
+   grows tall enough to need scrolling. */
+html { scrollbar-gutter: stable; }
+
 :root {
     --bg: #131E17;
     --surface: #1A2B23;
@@ -755,9 +759,8 @@ article figcaption {
     grid-template-columns: 110px 1fr auto 16px;
     gap: 18px;
     align-items: baseline;
-    padding: 22px 4px;
-    border-radius: 8px;
-    margin: 0 -4px;
+    padding: 22px 24px;
+    border-radius: 10px;
     transition: background 0.2s;
 }
 
@@ -812,7 +815,7 @@ article figcaption {
 }
 
 .entry-row-body {
-    padding: 8px 4px 48px;
+    padding: 8px 24px 48px;
     animation: fadeUp 0.35s ease both;
     max-width: 760px;
 }
@@ -1672,7 +1675,15 @@ def build():
         }});
         marker.bindPopup(popup, {{ maxWidth: 260 }});
         marker.on('click', function() {{
-            if (loc.entries.length > 0) openEntry(loc.entries[0].slug, true);
+            if (loc.entries.length === 0) return;
+            var slug = loc.entries[0].slug;
+            var d = document.getElementById(slug);
+            if (!d) return;
+            if (d.open) {{
+                d.open = false;
+            }} else {{
+                openEntry(slug, true);
+            }}
         }});
         marker.on('mouseover', function() {{
             setRowsClass(loc.entries.map(function(e) {{ return e.slug; }}), 'highlighted', true);

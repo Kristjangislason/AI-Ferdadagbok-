@@ -138,7 +138,15 @@ A developer can parse your Polarsteps export and turn the stories into pages/car
         });
         marker.bindPopup(popup, { maxWidth: 260 });
         marker.on('click', function() {
-            if (loc.entries.length > 0) openEntry(loc.entries[0].slug, true);
+            if (loc.entries.length === 0) return;
+            var slug = loc.entries[0].slug;
+            var d = document.getElementById(slug);
+            if (!d) return;
+            if (d.open) {
+                d.open = false;
+            } else {
+                openEntry(slug, true);
+            }
         });
         marker.on('mouseover', function() {
             setRowsClass(loc.entries.map(function(e) { return e.slug; }), 'highlighted', true);
