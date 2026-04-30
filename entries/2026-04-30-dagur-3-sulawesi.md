@@ -16,4 +16,4 @@ A developer can parse your Polarsteps export and turn the stories into pages/car
 
 So: **you can embed the trip map officially, but connecting/syncing the written text usually requires export, copy/paste, WordPress plugin, or custom coding.**
 
-Staðir: Makassar
+Staður: Makassar
