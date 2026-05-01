@@ -1326,6 +1326,11 @@ def build():
         shutil.copytree(IMAGES_DIR, docs_images)
         print(f"Copied {len(list(docs_images.iterdir()))} images → docs/images/")
 
+    # Preserve CNAME for custom-domain hosting (Netlify/GitHub Pages)
+    cname_src = Path(__file__).parent / "CNAME"
+    if cname_src.exists():
+        shutil.copy(cname_src, DOCS_DIR / "CNAME")
+
     entry_files = sorted(ENTRIES_DIR.glob("*.md"))
     entries = [parse_entry(f) for f in entry_files]
 
