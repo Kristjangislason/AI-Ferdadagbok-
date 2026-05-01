@@ -1,9 +1,10 @@
-# AI-Ferðadagbók (Travel Journal)
+# Ferðadagbók (Travel Journal)
 
 ## What this project is
 A personal travel journal for a trip through Indonesia (1. maí – 6. júní 2026).
 Route: Jakarta → Tanjung Puting (Borneo) → Sulawesi → Flores → Jakarta.
-Site is published in Icelandic.
+Site is published in Icelandic at **https://landkonnudir.is**
+(custom domain via `CNAME` at the repo root, served by Netlify from `docs/`).
 
 ## Workflow
 Entries live as sub-pages under one parent Notion page (`NOTION_PAGE_ID` in `.env`).

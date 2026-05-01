@@ -15,6 +15,10 @@ ENTRIES_DIR = Path(__file__).parent / "entries"
 IMAGES_DIR = Path(__file__).parent / "images"
 DOCS_DIR = Path(__file__).parent / "docs"
 
+SITE_URL = "https://landkonnudir.is"
+SITE_NAME = "Ferðadagbók"
+SITE_DESCRIPTION = "Kristján og India Bríet — Ferð um Indónesíu, 1. maí – 6. júní 2026"
+
 YOUTUBE_CACHE_PATH = Path(__file__).parent / ".youtube-cache.json"
 
 
@@ -1235,7 +1239,7 @@ LIGHTBOX_SCRIPT = """\
 """
 
 
-def html_page(title, body, active_page=None, head_extra="", scripts="", wide=False):
+def html_page(title, body, active_page=None, head_extra="", scripts="", wide=False, page_url="", description=""):
     nav_links = ""
     for href, label in NAV_PAGES:
         cls = ' class="active"' if href == active_page else ""
@@ -1249,6 +1253,8 @@ def html_page(title, body, active_page=None, head_extra="", scripts="", wide=Fal
 </header>"""
 
     container_class = "container container--wide" if wide else "container"
+    canonical = f"{SITE_URL}/{page_url}" if page_url else SITE_URL
+    desc = description or SITE_DESCRIPTION
     return f"""\
 <!DOCTYPE html>
 <html lang="is">
@@ -1256,6 +1262,17 @@ def html_page(title, body, active_page=None, head_extra="", scripts="", wide=Fal
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
+<meta name="description" content="{desc}">
+<link rel="canonical" href="{canonical}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="{SITE_NAME}">
+<meta property="og:title" content="{title}">
+<meta property="og:description" content="{desc}">
+<meta property="og:url" content="{canonical}">
+<meta property="og:locale" content="is_IS">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{title}">
+<meta name="twitter:description" content="{desc}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Inter:wght@400;500&display=swap" rel="stylesheet">
@@ -1358,7 +1375,13 @@ def build():
             f'{entry["body_html"]}</article>'
             f'{render_entry_pager(prev_entry, next_entry)}'
         )
-        page = html_page(entry["title"], body, active_page="index.html")
+        page = html_page(
+            entry["title"],
+            body,
+            active_page="index.html",
+            page_url=f'{entry["slug"]}.html',
+            description=f'{entry["title"]} — {date_is}',
+        )
         (DOCS_DIR / f'{entry["slug"]}.html').write_text(page)
 
     gallery_items = []
@@ -1384,7 +1407,14 @@ def build():
         gallery_body = '<p class="gallery-empty">Engar myndir ennþá — þær birtast hér eftir því sem ferðin þróast.</p>'
     else:
         gallery_body = f'<h2 class="section-heading">Myndir</h2>\n<div class="gallery-grid">{chr(10).join(gallery_items)}</div>'
-    gallery_page = html_page("Ferðadagbók — Myndir", gallery_body, active_page="gallery.html", wide=True)
+    gallery_page = html_page(
+        "Ferðadagbók — Myndir",
+        gallery_body,
+        active_page="gallery.html",
+        wide=True,
+        page_url="gallery.html",
+        description="Allar myndir úr ferðinni um Indónesíu.",
+    )
     (DOCS_DIR / "gallery.html").write_text(gallery_page)
 
     # Videos page: merge curated videos.json with YouTube embeds discovered in entries
@@ -1440,7 +1470,14 @@ def build():
             )
         videos_body = f'<h2 class="section-heading">Myndbönd</h2>\n<div class="video-grid">{video_items}</div>'
 
-    videos_page = html_page("Ferðadagbók — Myndbönd", videos_body, active_page="videos.html", wide=True)
+    videos_page = html_page(
+        "Ferðadagbók — Myndbönd",
+        videos_body,
+        active_page="videos.html",
+        wide=True,
+        page_url="videos.html",
+        description="Myndbönd úr ferðinni um Indónesíu.",
+    )
     (DOCS_DIR / "videos.html").write_text(videos_page)
     video_count = len(all_videos)
 
@@ -1697,6 +1734,7 @@ def build():
         head_extra=leaflet_css,
         scripts=map_script,
         wide=True,
+        page_url="",
     )
     (DOCS_DIR / "index.html").write_text(landing_html)
 
