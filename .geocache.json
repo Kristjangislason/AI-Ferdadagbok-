@@ -19,5 +19,10 @@
     "lat": -5.1342962,
     "lng": 119.4124282,
     "name": "Makassar"
+  },
+  "wakatobi islands": {
+    "lat": 1.0056365,
+    "lng": 104.6347241,
+    "name": "Wakatobi Islands"
   }
 }
