@@ -6,7 +6,6 @@ Reads entries/ and outputs a complete site to docs/.
 import json
 import re
 import shutil
-import time
 from pathlib import Path
 
 import markdown
@@ -16,11 +15,9 @@ ENTRIES_DIR = Path(__file__).parent / "entries"
 IMAGES_DIR = Path(__file__).parent / "images"
 DOCS_DIR = Path(__file__).parent / "docs"
 
-GEOCACHE_PATH = Path(__file__).parent / ".geocache.json"
 YOUTUBE_CACHE_PATH = Path(__file__).parent / ".youtube-cache.json"
 
 
-_geocache = None
 _youtube_cache = None
 
 
@@ -70,118 +67,35 @@ def youtube_iframe(video_id):
     )
 
 
-def _load_geocache():
-    global _geocache
-    if _geocache is None:
-        _geocache = json.loads(GEOCACHE_PATH.read_text()) if GEOCACHE_PATH.exists() else {}
-    return _geocache
-
-
-def _save_geocache():
-    if _geocache is not None:
-        GEOCACHE_PATH.write_text(json.dumps(_geocache, indent=2, ensure_ascii=False))
-
-
-def geocode(place_name):
-    """Look up coordinates via OpenStreetMap Nominatim, with disk cache."""
-    cache = _load_geocache()
-    key = place_name.lower().strip()
-
-    if key in cache:
-        return cache[key]
-
-    resp = requests.get(
-        "https://nominatim.openstreetmap.org/search",
-        params={"q": f"{place_name}, Indonesia", "format": "json", "limit": 1},
-        headers={"User-Agent": "Ferdadagbok-TravelJournal/1.0"},
-        timeout=10,
-    )
-
-    results = resp.json()
-    if results:
-        loc = {
-            "lat": float(results[0]["lat"]),
-            "lng": float(results[0]["lon"]),
-            "name": place_name,
-        }
-        cache[key] = loc
-    else:
-        cache[key] = None
-
-    time.sleep(1)  # Nominatim rate limit
-    return cache[key]
-
-
+# A pin line: "Staður: <name>, <lat>, <lng>" — one line per pin, you can
+# add several. Coordinates are decimal numbers (positive or negative).
+# Examples:
+#   Staður: Jakarta, -6.1754, 106.8272
+#   Staður: Tana Toraja, -2.9667, 119.9000
 LOCATION_LINE_RE = re.compile(
-    r"^\s*Sta[ðd][iu]r\s*:\s*(.+?)\s*$",
+    r"^\s*Sta[ðd]ur\s*:\s*(.+?)\s*,\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$",
     re.MULTILINE | re.IGNORECASE,
 )
 
 
 def extract_locations_from_body(md_text):
-    """Pull a 'Staðir: A, B, C' (or 'Staður: A') line out of the body.
+    """Pull every 'Staður: Name, lat, lng' line out of the body.
 
-    Returns (places_list, cleaned_md). The line is removed from the body
-    so it doesn't render on the page.
+    Returns (locations, cleaned_md). Each location is a dict
+    {name, lat, lng}. The lines are stripped from the body so they
+    don't render on the page.
     """
-    m = LOCATION_LINE_RE.search(md_text)
-    if not m:
-        return [], md_text
-    places = [p.strip() for p in m.group(1).split(",") if p.strip()]
-    cleaned = LOCATION_LINE_RE.sub("", md_text, count=1).strip()
-    return places, cleaned
-
-
-def extract_place_from_title(title):
-    """Title-based fallback when the body has no Staðir: line."""
-    text = title.strip()
-    # Drop a leading date or dash prefix if present
-    m = re.search(r"[—-]\s*(.+)$", text)
-    if m:
-        text = m.group(1).strip()
-
-    # Look for a place after a preposition: in/at/to/from (en) or í/til/frá (is)
-    place_match = re.search(
-        r"\b(?:in|at|to|from|near|around|í|til|frá)\s+(.+)$",
-        text,
-        re.IGNORECASE,
-    )
-    if place_match:
-        return place_match.group(1).strip().rstrip(".,;:")
-
-    # Fallback: trailing capitalized word(s)
-    words = text.split()
-    place_words = []
-    for word in reversed(words):
-        if word and (word[0].isupper() or (place_words and word.lower() in ("the", "of", "el", "la"))):
-            place_words.insert(0, word)
-        else:
-            break
-    if place_words:
-        return " ".join(place_words).rstrip(".,;:")
-    return None
-
-
-def locate_entry_places(entry):
-    """Geocode every place declared in the entry. Returns a list of locations."""
-    places = list(entry.get("locations") or [])
-    if not places:
-        guess = extract_place_from_title(entry["title"])
-        if guess:
-            places = [guess]
-
     locations = []
-    seen = set()
-    for p in places:
-        loc = geocode(p)
-        if not loc:
-            continue
-        key = (round(loc["lat"], 4), round(loc["lng"], 4))
-        if key in seen:
-            continue
-        seen.add(key)
-        locations.append(loc)
-    return locations
+    for m in LOCATION_LINE_RE.finditer(md_text):
+        locations.append({
+            "name": m.group(1).strip(),
+            "lat": float(m.group(2)),
+            "lng": float(m.group(3)),
+        })
+    cleaned = LOCATION_LINE_RE.sub("", md_text).strip()
+    # Collapse any blank lines left behind
+    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
+    return locations, cleaned
 
 BASE_STYLE = """\
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -1415,15 +1329,15 @@ def build():
     entry_files = sorted(ENTRIES_DIR.glob("*.md"))
     entries = [parse_entry(f) for f in entry_files]
 
-    # Resolve coordinates for each entry up front — used for both the map markers
-    # and the JS map↔accordion sync.
+    # Per-entry coordinates come straight from the "Staður:" lines the user
+    # wrote in Notion — no geocoding, no guessing. Build the lookup keys
+    # for the map ↔ accordion sync.
     for entry in entries:
-        resolved = locate_entry_places(entry)
-        entry["resolved_locations"] = resolved
+        locs = entry["locations"]
         entry["location_keys"] = [
-            f"{round(loc['lat'], 4)},{round(loc['lng'], 4)}" for loc in resolved
+            f"{round(loc['lat'], 4)},{round(loc['lng'], 4)}" for loc in locs
         ]
-        entry["place_names"] = [loc["name"] for loc in resolved]
+        entry["place_names"] = [loc["name"] for loc in locs]
 
     # Per-entry standalone pages (narrow reading column)
     for i, entry in enumerate(entries):
@@ -1528,7 +1442,7 @@ def build():
     # Build map data — one pin per location, listing every entry that mentions it
     location_groups = {}
     for entry in entries:
-        for loc in entry["resolved_locations"]:
+        for loc in entry["locations"]:
             key = (round(loc["lat"], 4), round(loc["lng"], 4))
             if key not in location_groups:
                 location_groups[key] = {
@@ -1781,7 +1695,6 @@ def build():
     )
     (DOCS_DIR / "index.html").write_text(landing_html)
 
-    _save_geocache()
     _save_youtube_cache()
     print(f"Built {len(entries)} entries + gallery + videos + dagbók home → docs/")
 

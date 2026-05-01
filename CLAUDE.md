@@ -31,10 +31,11 @@ hour and commits any changes back to `main`.
 - **Date**: if the title starts with `YYYY-MM-DD` it's used as the entry date
   (and stripped from the displayed title). Otherwise the page's Notion
   `created_time` is used.
-- **Map pins**: include a line `Staðir: Jakarta, Tana Toraja` (or `Staður: Jakarta`)
-  anywhere in the body to drop pins on the landing-page map. Comma-separated,
-  case-insensitive, hidden from the rendered page. If absent, the build falls
-  back to guessing one place from the entry title.
+- **Map pins**: each pin needs an explicit line in the body of the form
+  `Staður: <Name>, <lat>, <lng>` (one line per pin; multiple lines for
+  multiple pins). Coordinates are decimal numbers. The build does no
+  geocoding — what you write is what gets pinned. Lines are case-
+  insensitive and hidden from the rendered page.
 - Images embedded in the page are downloaded into `images/` and shown on the site.
 - **YouTube videos**: paste a YouTube URL into the body (as a video block, embed,
   bookmark, or a paragraph that's just the URL on its own line). The build
