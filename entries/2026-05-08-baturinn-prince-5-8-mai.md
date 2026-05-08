@@ -1,19 +1,26 @@
 # Báturinn Prince (5-8. maí)
 
-Við yfirgáfum Jakarta 5. maí og flugum til Pangkalan Bun, bær í Central Kalimantan. Þar vorum við sótt af Kyu, sem guide-inn okkar næstu fjóra daga í bátsferð um Tanjung Puting þjóðgarðinn meðfram Sekonyer ánni. Yndislega teymið á bátnum okkar Prince samanstóð af Kyu guide, kokknum Sue, skipstjóranum Ian og aðstoðarmanninum Madan.
+Við yfirgáfum Jakarta 5. maí og flugum til Pangkalan Bun, bær í Central Kalimantan. Þar vorum við sótt af Kyu, sem er guide-inn okkar næstu fjóra daga í bátsferð um Tanjung Puting þjóðgarðinn meðfram Sekonyer ánni. Yndislega teymið á bátnum okkar Prince samanstóð af Kyu guide, kokknum Sue, skipstjóranum Ian og aðstoðarmanninum Madan.
 
 Fyrsti dagurinn var rólegur. Við sigldum langleiðina inn í tropical heath skóginn, bátnum var lagt í árbakkanum, kvöldmaturinn var borinn fram og svefnplássinu slegið upp. Á leiðinni sáum við alls konar dýrategundir, meðal annars macaques apa, krókódíl og snák!
 
-Teymið hugsaði alveg einstaklega vel um okkur þessa fjóra daga á meðan ferðinni stóð, allar máltíðir og millimál voru mjög góð. Indónesískar bananapönnukökur, ferskvatnsfiskur, alls kyns soðið eða gufusoðið grænmeti, núðluréttir, fried rice (nasi goreng), tempeh, tófú og alls kyns ávextir og ljúffengt engifer og lemongrass te.
+Teymið hugsaði alveg einstaklega vel um okkur þessa fjóra daga á meðan ferðinni stóð, allar máltíðir og millimál voru mjög góð. Indónesískar bananapönnukökur, ferskvatnsfiskur, alls kyns djúpsteikt, soðið eða gufusoðið grænmeti, núðluréttir, fried rice (nasi goreng), tempeh, tófú og alls kyns ávextir og ljúffengt engifer og lemongrass te.
 
-Næstu þrír dagar einkenndust síðan af alls konar ævintýrum og dýralífi. Þar má nefna að við sáum órangúta, probiscis og macaque apa í trjánum meðfram ánni, fylgdumst með því þegar landverðir færðu órangútönum banana og sætar kartöflur að borða, við fórum í næturrölt í gegnum hitabeltisskóginn (exposure therapy fyrir hræðilegum dýrum), þar sem við sáum ólíkar furðuverur, tarantúlur, sporðdreka, risa maura, drekaflugur og eldflugur svo eitthvað sé nefnt, við vorum vel hulin fyrir dýrunum á meðan landvörðurinn var klæddur í flipflops og gróf sig inn í hreiður sporðdrekans með fingrunum einum. Þess á milli slökuðum við á um borð í bátnum á siglingu í gegnum hitabeltisskóginn meðfram Sekonyer ánni.
+Næstu þrír dagar einkenndust síðan af alls konar ævintýrum og dýralífi. Þar má nefna að við sáum órangúta, probiscis og macaque apa í trjánum meðfram ánni, fylgdumst með því þegar landverðir færðu órangútönum banana og sætar kartöflur að borða, við fórum í næturrölt í gegnum hitabeltisskóginn (exposure therapy fyrir hræðilegum dýrum), þar sem við sáum ólíkar furðuverur, tarantúlur, sporðdreka, risa maura, drekaflugur og eldflugur svo eitthvað sé nefnt, við vorum vel hulin fyrir dýrunum á meðan landvörðurinn var klæddur í flipflops og gróf sig inn í hreiður sporðdrekans með fingrunum einum. Einnig blasti við okkur stjörnubjartur himinn. Þess á milli slökuðum við á um borð í bátnum á siglingu í gegnum hitabeltisskóginn meðfram Sekonyer ánni.
 
-Á einum tímapunkti þegar við vorum að rölta í skóginum urðum við vitni að orangútan að leika sér á jörðinni aðeins nokkra metra frá okkur. Órangútar eru mjög forvitin dýr, hann gekk alltaf nær og nær og allt í einu stóð hann aðeins einum metra frá okkur, Indiu Bríet og Kye, Kye var tilbúin með bangsasnák til að kasta til hans ef hann myndi koma að okkur þar sem órangútar eru mjög hræddir við slöngur, en Kye hefur einstakan áhuga á skriðdýrum. Okkur fannst þetta pínu óþægilegt þar sem ráðlagt er að halda sér 5m frá dýrunum en en á sama tíma alveg mögnuð upplifun að komast svo nálægt!
-Það eru varla til orð ti
+Á einum tímapunkti þegar við vorum að rölta í skóginum urðum við vitni að orangútan að leika sér á jörðinni aðeins nokkra metra frá okkur. Órangútar eru mjög forvitin dýr, hann gekk alltaf nær og nær og allt í einu stóð hann aðeins einum metra frá okkur, Indiu Bríet og Kye, Kye var tilbúin með bangsasnák til að kasta til hans ef hann myndi koma að okkur þar sem órangútar eru mjög hræddir við slöngur, en Kye hefur einstakan áhuga á skriðdýrum. Okkur fannst þetta magnað, spennandi og smá spooky, þar sem ráðlagt er að halda sér 5m frá dýrunum en en á sama tíma alveg mögnuð upplifun að komast svo nálægt þeim!
+Það eru varla til orð til að lýsa því sem við höfum upplifað síðustu daga í þjóðgarðinum.
 
-Næturnar í moskítótjaldinu okkar minntu á infrarauðar saunastundir með austurevrópskt hardbase teknó í forgrunni þar sem allt dýraríkið var á djamminu allan liðlanga nóttina (og daginn).
+Ekki má sleppa því að lýsa einstaka næturlífinu. Næturnar í moskítótjaldinu okkar með útsýni yfir ánna, skóginn og dýralífið minntu á infrarauðar saunastundir með austur-evrópsku hardbase teknó í forgrunni þar sem allt dýraríkið var á djamminu allan liðlanga nóttina (og daginn) ásamt söng frá mosku í fjarska.
 
-Núna sitjum við í bátnum, komin aftur í netsamband og á leið til baka í bæinn Pangkalan Bun. Við erum bæði sammála um að þessi ferð sé eitthvað það magnaðasta sem við höfum upplifað og ef einhver er á þessum slóðum þá mælum við klárlega með þessu. Þang
+Báturinn kom við í litlu 400 manna þorpi, Sekonyer village, þar sem Sue kom við til að kaupa inn klaka í ísskápinn. Við fengum að stökkva með og spóka okkur um í þorpinu á meðan, myndirnar lýsa róinni og mannlífinu þar.
+
+Núna sitjum við í bátnum rétt ókomin til Pangkalan Bun og komin aftur í netsamband sem skýrir skort á færslum síðustu daga. Við erum bæði sammála um að þessi sigling og allt sem í henni fólst sé eitthvað það magnaðasta sem við höfum upplifað og ef einhver er á þessum slóðum eða hefur áhuga á þeim þá mælum við klárlega með. Þangað til næst!
+
+Áhugavert:
+Á fluginu frá Jakarta til Pangkalan Bun var mjög augljóst hversu hátt sjávarborðið er í samanburði við land og byggingar.
+
+Í þorpinu komum við við í lítilli búð, þar var að finna allskyns drykkjarföng og mat. Þar voru einnig til nokkrar tegundir af indónesískum orkuskot sem starfsmenn pálm akranna drekka vegna langra vinnudaga og líkamlegrar vinnu. Athugavert var hversu mikið taurin og koffeinmagnið var.
 
 ![](../images/2026-05-08-b441df02eda4.jpeg)
 
@@ -39,8 +46,6 @@ Núna sitjum við í bátnum, komin aftur í netsamband og á leið til baka í 
 
 ![](../images/2026-05-08-cbf7628b7bce.jpeg)
 
-![](../images/2026-05-08-a833f50b77d7.jpeg)
-
 ![](../images/2026-05-08-91ca4394b145.jpeg)
 
 ![](../images/2026-05-08-5c97c649018b.jpeg)
@@ -54,3 +59,11 @@ Núna sitjum við í bátnum, komin aftur í netsamband og á leið til baka í 
 ![](../images/2026-05-08-70e0a33acf0b.jpeg)
 
 ![](../images/2026-05-08-df489adbe7eb.jpeg)
+
+![](../images/2026-05-08-de8b4eedf8a0.jpeg)
+
+![](../images/2026-05-08-a25f119ae94a.jpeg)
+
+![](../images/2026-05-08-daed3947abe9.jpeg)
+
+![](../images/2026-05-08-d241616ee751.jpeg)
