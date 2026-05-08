@@ -54,8 +54,6 @@ Núna sitjum við í bátnum rétt ókomin til Pangkalan Bun og komin aftur í n
 
 ![](../images/2026-05-08-5811f5701e29.jpeg)
 
-![](../images/2026-05-08-a4282e02f62b.jpeg)
-
 ![](../images/2026-05-08-70e0a33acf0b.jpeg)
 
 ![](../images/2026-05-08-df489adbe7eb.jpeg)
