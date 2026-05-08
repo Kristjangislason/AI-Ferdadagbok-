@@ -13,34 +13,44 @@ Næstu þrír dagar einkenndust síðan af alls konar ævintýrum og dýralífi.
 
 Næturnar í moskítótjaldinu okkar minntu á infrarauðar saunastundir með austurevrópskt hardbase teknó í forgrunni þar sem allt dýraríkið var á djamminu allan liðlanga nóttina (og daginn).
 
-Núna sitjum við í bátnum, komin aftur í netsamband og á leið til baka í bæinn Pangkalan Bun. Við erum bæði sammála um að þessi ferð sé eitthvað það magnaðasta sem við höfum upplifað og ef einhver er á þessum slóðum þá mælum við klárlega með þessu. Þangað til næst
+Núna sitjum við í bátnum, komin aftur í netsamband og á leið til baka í bæinn Pangkalan Bun. Við erum bæði sammála um að þessi ferð sé eitthvað það magnaðasta sem við höfum upplifað og ef einhver er á þessum slóðum þá mælum við klárlega með þessu. Þang
 
 ![](../images/2026-05-08-b441df02eda4.jpeg)
 
 ![](../images/2026-05-08-527563f7332d.jpeg)
 
-![](../images/2026-05-08-594180354822.jpeg)
-
-![](../images/2026-05-08-1e1d4d7159fc.jpeg)
-
-![](../images/2026-05-08-cda3d5d31f7f.jpeg)
-
-![](../images/2026-05-08-15e3684ae8ba.jpeg)
-
-![](../images/2026-05-08-e048d77a834e.jpeg)
-
-![](../images/2026-05-08-f6613cb90d64.jpeg)
-
-![](../images/2026-05-08-c00b4fe79498.jpeg)
-
-![](../images/2026-05-08-534b99600c0d.jpeg)
-
-![](../images/2026-05-08-49b8284d6a81.jpeg)
-
-![](../images/2026-05-08-259fb264a320.jpeg)
-
 ![](../images/2026-05-08-c5dc228678d5.jpeg)
 
 ![](../images/2026-05-08-bb1c33e58ca6.jpeg)
 
-![](../images/2026-05-08-ddeb9ce0fa00.jpeg)
+![](../images/2026-05-08-a9a9aef777fc.jpeg)
+
+![](../images/2026-05-08-f5532e07279f.jpeg)
+
+![](../images/2026-05-08-a8432f2c79b9.jpeg)
+
+![](../images/2026-05-08-819e26972e0e.jpeg)
+
+![](../images/2026-05-08-504c8e17df0b.jpeg)
+
+![](../images/2026-05-08-9ef62cb93f15.jpeg)
+
+![](../images/2026-05-08-240826c8a584.jpeg)
+
+![](../images/2026-05-08-cbf7628b7bce.jpeg)
+
+![](../images/2026-05-08-a833f50b77d7.jpeg)
+
+![](../images/2026-05-08-91ca4394b145.jpeg)
+
+![](../images/2026-05-08-5c97c649018b.jpeg)
+
+![](../images/2026-05-08-42276fe8d006.jpeg)
+
+![](../images/2026-05-08-5811f5701e29.jpeg)
+
+![](../images/2026-05-08-a4282e02f62b.jpeg)
+
+![](../images/2026-05-08-70e0a33acf0b.jpeg)
+
+![](../images/2026-05-08-df489adbe7eb.jpeg)
