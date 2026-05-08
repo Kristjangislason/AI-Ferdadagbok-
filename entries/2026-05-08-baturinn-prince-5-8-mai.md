@@ -67,3 +67,17 @@ Núna sitjum við í bátnum rétt ókomin til Pangkalan Bun og komin aftur í n
 ![](../images/2026-05-08-d241616ee751.jpeg)
 
 ![](../images/2026-05-08-25accc6864f5.jpeg)
+
+![](../images/2026-05-08-edb1494c9ea0.jpeg)
+
+![](../images/2026-05-08-36e25a6b1854.jpeg)
+
+![](../images/2026-05-08-9e7c76428ac8.jpeg)
+
+![](../images/2026-05-08-67d3fd9d5c42.jpeg)
+
+![](../images/2026-05-08-17b0832306dd.jpeg)
+
+![](../images/2026-05-08-8538471d67a6.jpeg)
+
+![](../images/2026-05-08-a078adcf92c8.jpeg)
