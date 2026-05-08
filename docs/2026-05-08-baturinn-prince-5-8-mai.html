@@ -74,9 +74,15 @@
 </div>
 <script>
 (function() {
+    var seen = new Set();
     var imgs = Array.prototype.slice.call(
         document.querySelectorAll('article img, .gallery-item img')
-    );
+    ).filter(function(img) {
+        var key = img.currentSrc || img.getAttribute('src') || img.src;
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
     if (!imgs.length) return;
 
     var overlay = document.createElement('div');
