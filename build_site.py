@@ -1467,7 +1467,7 @@ def build():
         entry["location_keys"] = [
             f"{round(loc['lat'], 4)},{round(loc['lng'], 4)}" for loc in locs
         ]
-        entry["place_names"] = [loc["name"] for loc in locs]
+        entry["place_names"] = [loc["name"] for loc in entry["locations"]]
 
     # Per-entry standalone pages (narrow reading column)
     for i, entry in enumerate(entries):
@@ -1650,6 +1650,7 @@ def build():
 
     map_script = f"""\
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 (function() {{
     // --- Leaflet map ---
@@ -1680,6 +1681,11 @@ def build():
     }});
 
     var markersByKey = {{}};
+    var markerLayer = L.markerClusterGroup({{
+        showCoverageOnHover: false,
+        spiderfyOnMaxZoom: true,
+        maxClusterRadius: 32
+    }});
 
     function setKeysClass(keys, cls, on) {{
         keys.forEach(function(k) {{
@@ -1720,7 +1726,7 @@ def build():
 
     markers.forEach(function(loc) {{
         var key = (Math.round(loc.lat * 10000) / 10000) + ',' + (Math.round(loc.lng * 10000) / 10000);
-        var marker = L.marker([loc.lat, loc.lng], {{ icon: pinIcon }}).addTo(map);
+        var marker = L.marker([loc.lat, loc.lng], {{ icon: pinIcon }});
         var popup = '<div class="popup-title">' + loc.name + '</div>';
         loc.entries.forEach(function(e) {{
             popup += '<a href="#' + e.slug + '" data-slug="' + e.slug + '"><span class="popup-date">' + e.date + '</span> ' + e.title + '</a><br>';
@@ -1744,7 +1750,9 @@ def build():
             setRowsClass(loc.entries.map(function(e) {{ return e.slug; }}), 'highlighted', false);
         }});
         markersByKey[key] = marker;
+        markerLayer.addLayer(marker);
     }});
+    map.addLayer(markerLayer);
 
     // Wire entry rows → pin highlight + selected state on open
     document.querySelectorAll('.entry-row').forEach(function(row) {{
@@ -1834,7 +1842,11 @@ def build():
 }})();
 </script>"""
 
-    leaflet_css = '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />\n'
+    leaflet_css = (
+        '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />\n'
+        '<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />\n'
+        '<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />\n'
+    )
     landing_html = html_page(
         "Ferðadagbók",
         landing_body,

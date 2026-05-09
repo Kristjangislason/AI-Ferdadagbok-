@@ -19,6 +19,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Inter:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
 <style>html { background: #131E17; }</style>
 <link rel="stylesheet" href="style.css">
 </head>
@@ -122,6 +124,7 @@ Gus fræddi okkur um helstu kennileiti, staði, pólitík og menninguna hér í 
 </div>
 </div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 (function() {
     // --- Leaflet map ---
@@ -152,6 +155,11 @@ Gus fræddi okkur um helstu kennileiti, staði, pólitík og menninguna hér í 
     });
 
     var markersByKey = {};
+    var markerLayer = L.markerClusterGroup({
+        showCoverageOnHover: false,
+        spiderfyOnMaxZoom: true,
+        maxClusterRadius: 32
+    });
 
     function setKeysClass(keys, cls, on) {
         keys.forEach(function(k) {
@@ -192,7 +200,7 @@ Gus fræddi okkur um helstu kennileiti, staði, pólitík og menninguna hér í 
 
     markers.forEach(function(loc) {
         var key = (Math.round(loc.lat * 10000) / 10000) + ',' + (Math.round(loc.lng * 10000) / 10000);
-        var marker = L.marker([loc.lat, loc.lng], { icon: pinIcon }).addTo(map);
+        var marker = L.marker([loc.lat, loc.lng], { icon: pinIcon });
         var popup = '<div class="popup-title">' + loc.name + '</div>';
         loc.entries.forEach(function(e) {
             popup += '<a href="#' + e.slug + '" data-slug="' + e.slug + '"><span class="popup-date">' + e.date + '</span> ' + e.title + '</a><br>';
@@ -216,7 +224,9 @@ Gus fræddi okkur um helstu kennileiti, staði, pólitík og menninguna hér í 
             setRowsClass(loc.entries.map(function(e) { return e.slug; }), 'highlighted', false);
         });
         markersByKey[key] = marker;
+        markerLayer.addLayer(marker);
     });
+    map.addLayer(markerLayer);
 
     // Wire entry rows → pin highlight + selected state on open
     document.querySelectorAll('.entry-row').forEach(function(row) {
