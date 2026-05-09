@@ -102,6 +102,101 @@ def extract_locations_from_body(md_text):
     cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
     return locations, cleaned
 
+
+ENTRY_IMAGE_RE = re.compile(r"!\[[^\]]*]\((?:\.\./)?images/([^)#?\s]+)")
+
+
+def _exif_gps_to_decimal(values, ref):
+    try:
+        deg = float(values[0][0]) / float(values[0][1])
+        mins = float(values[1][0]) / float(values[1][1])
+        secs = float(values[2][0]) / float(values[2][1])
+        dec = deg + (mins / 60.0) + (secs / 3600.0)
+        if ref in ("S", "W"):
+            dec = -dec
+        return dec
+    except Exception:
+        return None
+
+
+def _read_jpeg_exif_gps(image_path):
+    """Return (lat, lng) from JPEG EXIF GPS, or (None, None)."""
+    data = image_path.read_bytes()
+    if not data.startswith(b"\xFF\xD8"):
+        return None, None
+    i = 2
+    while i + 4 < len(data):
+        if data[i] != 0xFF:
+            break
+        marker = data[i + 1]
+        i += 2
+        if marker in (0xD8, 0xD9):
+            continue
+        seg_len = int.from_bytes(data[i:i + 2], "big")
+        seg = data[i + 2:i + seg_len]
+        i += seg_len
+        if marker != 0xE1 or not seg.startswith(b"Exif\x00\x00"):
+            continue
+        tiff = seg[6:]
+        endian = "little" if tiff[:2] == b"II" else "big"
+        def u16(off): return int.from_bytes(tiff[off:off + 2], endian, signed=False)
+        def u32(off): return int.from_bytes(tiff[off:off + 4], endian, signed=False)
+        ifd0 = u32(4)
+        n = u16(ifd0)
+        gps_ptr = None
+        for idx in range(n):
+            off = ifd0 + 2 + idx * 12
+            tag = u16(off)
+            if tag == 0x8825:
+                gps_ptr = u32(off + 8)
+                break
+        if gps_ptr is None:
+            return None, None
+        gps_n = u16(gps_ptr)
+        gps = {}
+        for idx in range(gps_n):
+            off = gps_ptr + 2 + idx * 12
+            tag = u16(off)
+            typ = u16(off + 2)
+            count = u32(off + 4)
+            val = off + 8
+            if typ == 2:  # ASCII
+                ptr = u32(val) if count > 4 else val
+                gps[tag] = tiff[ptr:ptr + count - 1].decode("ascii", "ignore")
+            elif typ == 5:  # RATIONAL
+                ptr = u32(val)
+                vals = []
+                for j in range(count):
+                    num = u32(ptr + j * 8)
+                    den = u32(ptr + j * 8 + 4) or 1
+                    vals.append((num, den))
+                gps[tag] = vals
+        lat = _exif_gps_to_decimal(gps.get(2), gps.get(1))
+        lng = _exif_gps_to_decimal(gps.get(4), gps.get(3))
+        return lat, lng
+    return None, None
+
+
+def extract_image_locations(entry_markdown):
+    """Extract unique image filenames used by an entry and read EXIF GPS."""
+    locations = []
+    seen = set()
+    for filename in ENTRY_IMAGE_RE.findall(entry_markdown):
+        if filename in seen:
+            continue
+        seen.add(filename)
+        image_path = IMAGES_DIR / filename
+        if not image_path.exists():
+            continue
+        try:
+            lat, lng = _read_jpeg_exif_gps(image_path)
+            if lat is None or lng is None:
+                continue
+            locations.append({"name": f"Mynd: {filename}", "lat": lat, "lng": lng})
+        except Exception:
+            continue
+    return locations
+
 BASE_STYLE = """\
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 a, a:visited { color: inherit; }
@@ -1339,6 +1434,7 @@ def parse_entry(filepath):
         "body_html": body_html,
         "slug": filepath.stem,
         "locations": locations,
+        "image_locations": extract_image_locations(text),
         "youtube_ids": youtube_ids,
     }
 
@@ -1367,11 +1463,11 @@ def build():
     # wrote in Notion — no geocoding, no guessing. Build the lookup keys
     # for the map ↔ accordion sync.
     for entry in entries:
-        locs = entry["locations"]
+        locs = entry["locations"] + entry["image_locations"]
         entry["location_keys"] = [
             f"{round(loc['lat'], 4)},{round(loc['lng'], 4)}" for loc in locs
         ]
-        entry["place_names"] = [loc["name"] for loc in locs]
+        entry["place_names"] = [loc["name"] for loc in entry["locations"]]
 
     # Per-entry standalone pages (narrow reading column)
     for i, entry in enumerate(entries):
@@ -1497,7 +1593,7 @@ def build():
     # Build map data — one pin per location, listing every entry that mentions it
     location_groups = {}
     for entry in entries:
-        for loc in entry["locations"]:
+        for loc in entry["locations"] + entry["image_locations"]:
             key = (round(loc["lat"], 4), round(loc["lng"], 4))
             if key not in location_groups:
                 location_groups[key] = {
@@ -1554,6 +1650,7 @@ def build():
 
     map_script = f"""\
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 (function() {{
     // --- Leaflet map ---
@@ -1584,6 +1681,11 @@ def build():
     }});
 
     var markersByKey = {{}};
+    var markerLayer = L.markerClusterGroup({{
+        showCoverageOnHover: false,
+        spiderfyOnMaxZoom: true,
+        maxClusterRadius: 32
+    }});
 
     function setKeysClass(keys, cls, on) {{
         keys.forEach(function(k) {{
@@ -1624,7 +1726,7 @@ def build():
 
     markers.forEach(function(loc) {{
         var key = (Math.round(loc.lat * 10000) / 10000) + ',' + (Math.round(loc.lng * 10000) / 10000);
-        var marker = L.marker([loc.lat, loc.lng], {{ icon: pinIcon }}).addTo(map);
+        var marker = L.marker([loc.lat, loc.lng], {{ icon: pinIcon }});
         var popup = '<div class="popup-title">' + loc.name + '</div>';
         loc.entries.forEach(function(e) {{
             popup += '<a href="#' + e.slug + '" data-slug="' + e.slug + '"><span class="popup-date">' + e.date + '</span> ' + e.title + '</a><br>';
@@ -1648,7 +1750,9 @@ def build():
             setRowsClass(loc.entries.map(function(e) {{ return e.slug; }}), 'highlighted', false);
         }});
         markersByKey[key] = marker;
+        markerLayer.addLayer(marker);
     }});
+    map.addLayer(markerLayer);
 
     // Wire entry rows → pin highlight + selected state on open
     document.querySelectorAll('.entry-row').forEach(function(row) {{
@@ -1738,7 +1842,11 @@ def build():
 }})();
 </script>"""
 
-    leaflet_css = '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />\n'
+    leaflet_css = (
+        '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />\n'
+        '<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />\n'
+        '<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />\n'
+    )
     landing_html = html_page(
         "Ferðadagbók",
         landing_body,
