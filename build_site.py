@@ -6,6 +6,7 @@ Reads entries/ and outputs a complete site to docs/.
 import json
 import re
 import shutil
+from html import escape
 from pathlib import Path
 
 import markdown
@@ -1110,26 +1111,31 @@ def lazyfy_iframes(html):
     return re.sub(r'<iframe\s+src="([^"]+)"', r'<iframe data-src="\1"', html)
 
 
+def safe_json_for_script(value):
+    """Serialize JSON for inline <script> without allowing accidental tag close."""
+    return json.dumps(value, ensure_ascii=False).replace("</", "<\\/")
+
+
 def render_entry_row(entry):
     """One <details> accordion row for the homepage Dagbók."""
     date_is = format_date_is(entry["date"])
     place_chip = ""
     place_names = entry.get("place_names") or []
     if place_names:
-        chip = " &middot; ".join(place_names)
+        chip = " &middot; ".join(escape(name) for name in place_names)
         place_chip = f'<span class="entry-row-places">{chip}</span>'
     body_html = lazyfy_iframes(entry["body_html"])
     return (
-        f'<details class="entry-row" id="{entry["slug"]}">'
+        f'<details class="entry-row" id="{escape(entry["slug"], quote=True)}">'
         f'<summary>'
         f'<span class="entry-row-date">{date_is}</span>'
-        f'<span class="entry-row-title">{entry["title"]}</span>'
+        f'<span class="entry-row-title">{escape(entry["title"])}</span>'
         f'{place_chip}'
         f'<span class="entry-row-chevron">&rsaquo;</span>'
         f'</summary>'
         f'<div class="entry-row-body">'
         f'<article>{body_html}</article>'
-        f'<a class="entry-row-permalink" href="{entry["slug"]}.html">'
+        f'<a class="entry-row-permalink" href="{escape(entry["slug"], quote=True)}.html">'
         f'Opna sem s&iacute;&eth;u &rarr;'
         f'</a>'
         f'</div>'
@@ -1144,16 +1150,16 @@ def render_entry_pager(prev_entry, next_entry):
     parts = ['<nav class="entry-pager">']
     if prev_entry:
         parts.append(
-            f'<a class="entry-pager-prev" href="{prev_entry["slug"]}.html">'
+            f'<a class="entry-pager-prev" href="{escape(prev_entry["slug"], quote=True)}.html">'
             f'<span class="pager-direction">&larr; Fyrri f&aelig;rsla</span>'
-            f'<span class="pager-title">{prev_entry["title"]}</span>'
+            f'<span class="pager-title">{escape(prev_entry["title"])}</span>'
             f'</a>'
         )
     if next_entry:
         parts.append(
-            f'<a class="entry-pager-next" href="{next_entry["slug"]}.html">'
+            f'<a class="entry-pager-next" href="{escape(next_entry["slug"], quote=True)}.html">'
             f'<span class="pager-direction">N&aelig;sta f&aelig;rsla &rarr;</span>'
-            f'<span class="pager-title">{next_entry["title"]}</span>'
+            f'<span class="pager-title">{escape(next_entry["title"])}</span>'
             f'</a>'
         )
     parts.append('</nav>')
@@ -1163,9 +1169,15 @@ def render_entry_pager(prev_entry, next_entry):
 LIGHTBOX_SCRIPT = """\
 <script>
 (function() {
+    var seen = new Set();
     var imgs = Array.prototype.slice.call(
         document.querySelectorAll('article img, .gallery-item img')
-    );
+    ).filter(function(img) {
+        var key = img.currentSrc || img.getAttribute('src') || img.src;
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
     if (!imgs.length) return;
 
     var overlay = document.createElement('div');
@@ -1243,7 +1255,7 @@ def html_page(title, body, active_page=None, head_extra="", scripts="", wide=Fal
     nav_links = ""
     for href, label in NAV_PAGES:
         cls = ' class="active"' if href == active_page else ""
-        nav_links += f'<a href="{href}"{cls}>{label}</a>'
+        nav_links += f'<a href="{escape(href, quote=True)}"{cls}>{escape(label)}</a>'
     site_header = f"""\
 <header class="site-header">
 <div class="site-header-inner">
@@ -1261,18 +1273,18 @@ def html_page(title, body, active_page=None, head_extra="", scripts="", wide=Fal
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{title}</title>
-<meta name="description" content="{desc}">
-<link rel="canonical" href="{canonical}">
+<title>{escape(title)}</title>
+<meta name="description" content="{escape(desc, quote=True)}">
+<link rel="canonical" href="{escape(canonical, quote=True)}">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="{SITE_NAME}">
-<meta property="og:title" content="{title}">
-<meta property="og:description" content="{desc}">
-<meta property="og:url" content="{canonical}">
+<meta property="og:site_name" content="{escape(SITE_NAME, quote=True)}">
+<meta property="og:title" content="{escape(title, quote=True)}">
+<meta property="og:description" content="{escape(desc, quote=True)}">
+<meta property="og:url" content="{escape(canonical, quote=True)}">
 <meta property="og:locale" content="is_IS">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="{title}">
-<meta name="twitter:description" content="{desc}">
+<meta name="twitter:title" content="{escape(title, quote=True)}">
+<meta name="twitter:description" content="{escape(desc, quote=True)}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Inter:wght@400;500&display=swap" rel="stylesheet">
@@ -1367,10 +1379,10 @@ def build():
         prev_entry = entries[i - 1] if i > 0 else None
         next_entry = entries[i + 1] if i + 1 < len(entries) else None
         body = (
-            f'<a class="back-link" href="index.html#{entry["slug"]}">'
+            f'<a class="back-link" href="index.html#{escape(entry["slug"], quote=True)}">'
             f'&larr; Til baka &iacute; Dagb&oacute;k'
             f'</a>'
-            f'<article><h1>{entry["title"]}</h1>'
+            f'<article><h1>{escape(entry["title"])}</h1>'
             f'<div class="entry-date">{date_is}</div>'
             f'{entry["body_html"]}</article>'
             f'{render_entry_pager(prev_entry, next_entry)}'
@@ -1393,13 +1405,14 @@ def build():
                 continue
             seen_srcs.add(src)
             caption = m.group(3) or m.group(2) or ""
-            caption_html = f'<div class="gallery-caption">{caption}</div>' if caption else ""
+            safe_caption = escape(caption)
+            caption_html = f'<div class="gallery-caption">{safe_caption}</div>' if caption else ""
             gallery_items.append(
                 f'<div class="gallery-item">'
-                f'<img src="{src}" alt="{caption}">'
+                f'<img src="{escape(src, quote=True)}" alt="{safe_caption}">'
                 f'<div class="gallery-info">'
                 f'{caption_html}'
-                f'<a class="gallery-entry-link" href="{entry["slug"]}.html">{entry["title"]}</a>'
+                f'<a class="gallery-entry-link" href="{escape(entry["slug"], quote=True)}.html">{escape(entry["title"])}</a>'
                 f'</div></div>'
             )
 
@@ -1431,7 +1444,7 @@ def build():
             meta = fetch_youtube_meta(vid)
             auto_videos.append({
                 "id": vid,
-                "title": meta.get("title") or "&Aacute;n titils",
+                "title": meta.get("title") or "Án titils",
                 "date": entry["date"],
                 "entry_slug": entry["slug"],
                 "entry_title": entry["title"],
@@ -1453,10 +1466,10 @@ def build():
         for v in all_videos:
             if v.get("entry_slug"):
                 location_html = (
-                    f' &middot; <a class="video-location" href="{v["entry_slug"]}.html">{v["entry_title"]}</a>'
+                    f' &middot; <a class="video-location" href="{escape(v["entry_slug"], quote=True)}.html">{escape(v["entry_title"])}</a>'
                 )
             elif v.get("location"):
-                location_html = f' &middot; <span class="video-location">{v["location"]}</span>'
+                location_html = f' &middot; <span class="video-location">{escape(v["location"])}</span>'
             else:
                 location_html = ""
             date_is = format_date_is(v.get("date", ""))
@@ -1464,7 +1477,7 @@ def build():
                 f'<div class="video-item">'
                 f'{youtube_iframe(v["id"])}'
                 f'<div class="video-info">'
-                f'<div class="video-title">{v.get("title", "&Aacute;n titils")}</div>'
+                f'<div class="video-title">{escape(v.get("title", "Án titils"))}</div>'
                 f'<div class="video-meta">{date_is}{location_html}</div>'
                 f'</div></div>\n'
             )
@@ -1500,10 +1513,9 @@ def build():
                     "slug": entry["slug"],
                 })
 
-    map_markers_json = json.dumps(list(location_groups.values()), ensure_ascii=False)
-    entry_locations_json = json.dumps(
+    map_markers_json = safe_json_for_script(list(location_groups.values()))
+    entry_locations_json = safe_json_for_script(
         {entry["slug"]: entry["location_keys"] for entry in entries},
-        ensure_ascii=False,
     )
 
     # Homepage: compact hero + sticky map + accordion of entries (newest first)
