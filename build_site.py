@@ -1615,8 +1615,13 @@ def build():
                     "name": loc["name"],
                     "lat": loc["lat"],
                     "lng": loc["lng"],
+                    "image_url": loc.get("image_url", ""),
                     "entries": [],
                 }
+            # If multiple points collapse to the same rounded key, always
+            # prefer keeping an image-backed popup when available.
+            if loc.get("image_url") and not location_groups[key].get("image_url"):
+                location_groups[key]["image_url"] = loc["image_url"]
             if not any(e["slug"] == entry["slug"] for e in location_groups[key]["entries"]):
                 location_groups[key]["entries"].append({
                     "title": entry["title"],
