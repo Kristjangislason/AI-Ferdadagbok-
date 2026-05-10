@@ -192,7 +192,12 @@ def extract_image_locations(entry_markdown):
             lat, lng = _read_jpeg_exif_gps(image_path)
             if lat is None or lng is None:
                 continue
-            locations.append({"name": f"Mynd: {filename}", "lat": lat, "lng": lng})
+            locations.append({
+                "name": f"Mynd: {filename}",
+                "lat": lat,
+                "lng": lng,
+                "image_url": f"/images/{filename}",
+            })
         except Exception:
             continue
     return locations
@@ -739,6 +744,16 @@ article figcaption {
 .map-container .leaflet-popup-content .popup-date {
     font-size: 11px;
     color: var(--text-dim);
+}
+
+.map-container .leaflet-popup-content .popup-image {
+    display: block;
+    width: 100%;
+    max-width: 220px;
+    height: auto;
+    border-radius: 6px;
+    margin: 0 0 8px;
+    border: 1px solid rgba(196, 148, 74, 0.2);
 }
 
 /* --- Dagbók accordion (homepage) --- */
@@ -1600,8 +1615,13 @@ def build():
                     "name": loc["name"],
                     "lat": loc["lat"],
                     "lng": loc["lng"],
+                    "image_url": loc.get("image_url", ""),
                     "entries": [],
                 }
+            # If multiple points collapse to the same rounded key, always
+            # prefer keeping an image-backed popup when available.
+            if loc.get("image_url") and not location_groups[key].get("image_url"):
+                location_groups[key]["image_url"] = loc["image_url"]
             if not any(e["slug"] == entry["slug"] for e in location_groups[key]["entries"]):
                 location_groups[key]["entries"].append({
                     "title": entry["title"],
@@ -1663,10 +1683,10 @@ def build():
     L.control.zoom({{ position: 'bottomright' }}).addTo(map);
 
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{{z}}/{{y}}/{{x}}', {{
-        maxZoom: 13
+        maxZoom: 19
     }}).addTo(map);
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Reference/MapServer/tile/{{z}}/{{y}}/{{x}}', {{
-        maxZoom: 13
+        maxZoom: 19
     }}).addTo(map);
 
     var markers = {map_markers_json};
@@ -1724,25 +1744,26 @@ def build():
         }}
     }}
 
+    function resolveImageUrl(url) {{
+        if (!url) return '';
+        if (/^(https?:)?\/\//i.test(url) || url.indexOf('data:') === 0) return url;
+        var pathBase = window.location.pathname.replace(/[^/]*$/, '');
+        if (url.charAt(0) === '/') return pathBase.replace(/\/$/, '') + url;
+        return pathBase + url;
+    }}
+
     markers.forEach(function(loc) {{
         var key = (Math.round(loc.lat * 10000) / 10000) + ',' + (Math.round(loc.lng * 10000) / 10000);
         var marker = L.marker([loc.lat, loc.lng], {{ icon: pinIcon }});
         var popup = '<div class="popup-title">' + loc.name + '</div>';
+        if (loc.image_url) {{
+            var resolvedImageUrl = resolveImageUrl(loc.image_url);
+            popup += '<img class="popup-image" src="' + resolvedImageUrl + '" alt="' + loc.name + '" loading="lazy">';
+        }}
         loc.entries.forEach(function(e) {{
             popup += '<a href="#' + e.slug + '" data-slug="' + e.slug + '"><span class="popup-date">' + e.date + '</span> ' + e.title + '</a><br>';
         }});
         marker.bindPopup(popup, {{ maxWidth: 260 }});
-        marker.on('click', function() {{
-            if (loc.entries.length === 0) return;
-            var slug = loc.entries[0].slug;
-            var d = document.getElementById(slug);
-            if (!d) return;
-            if (d.open) {{
-                d.open = false;
-            }} else {{
-                openEntry(slug, true);
-            }}
-        }});
         marker.on('mouseover', function() {{
             setRowsClass(loc.entries.map(function(e) {{ return e.slug; }}), 'highlighted', true);
         }});
@@ -1811,10 +1832,10 @@ def build():
     if (markers.length === 0) {{
         map.setView([-4.5, 115.5], 5);
     }} else if (markers.length === 1) {{
-        map.setView([markers[0].lat, markers[0].lng], 7);
+        map.setView([markers[0].lat, markers[0].lng], 13);
     }} else {{
         var bounds = L.latLngBounds(markers.map(function(m) {{ return [m.lat, m.lng]; }}));
-        map.fitBounds(bounds, {{ padding: [60, 60], maxZoom: 8 }});
+        map.fitBounds(bounds, {{ padding: [60, 60], maxZoom: 14 }});
     }}
 
     // --- Map toggle (open/close map column) ---
