@@ -196,7 +196,7 @@ def extract_image_locations(entry_markdown):
                 "name": f"Mynd: {filename}",
                 "lat": lat,
                 "lng": lng,
-                "image_url": f"/images/{filename}",
+                "image_url": f"images/{filename}",
             })
         except Exception:
             continue
