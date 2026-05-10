@@ -541,6 +541,16 @@ article figcaption {
     color: var(--text-dim);
 }
 
+.map-container .leaflet-popup-content .popup-image {
+    display: block;
+    width: 100%;
+    max-width: 220px;
+    height: auto;
+    border-radius: 6px;
+    margin: 0 0 8px;
+    border: 1px solid rgba(196, 148, 74, 0.2);
+}
+
 /* --- Dagbók accordion (homepage) --- */
 
 .dagbok-accordion {
