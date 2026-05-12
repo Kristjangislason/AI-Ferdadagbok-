@@ -1,6 +1,6 @@
 # Bros og Bun (8.-10. maí)
 
-Leiðin lá aftur í land frá þjóðgarðinum eftir Kumai ánni.
+Leiðin lá aftur í land frá Tanjung Puting þjóðgarðinum eftir Kumai ánni.
 
 Við fórum á vappið um Kumai með Kyu í beinu framhaldi af siglingunni, gengum og keyrðum um bæinn, fórum a markað og hálfgert byggðassafn. Við gistum tvær nætur í Pangkalan bun, við vorum orðin aðeins svefnvana eftir siglinguna, hátt hitastig (32*), hátt rakastig (80%) ásamt fallegum kórsöng/djammsöng dýranna þegar við vorum um borð i bátnum. India Bríet var með riðu í rúmlega sólarhring eftir að við komum í land.
 
