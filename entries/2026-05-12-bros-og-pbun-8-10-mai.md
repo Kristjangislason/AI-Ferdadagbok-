@@ -2,7 +2,7 @@
 
 Leiðin lá aftur í land frá þjóðgarðinum eftir Kumai ánni.
 
-Við fórum á vappið um Kumai með Kyu í beinu framhaldi af siglingunni, gengum og keyrðum um bæinn, fórum a markað og hálfgert héraðssafn. Við gistum tvær nætur í Pangkalan bun, við vorum orðin aðeins svefnvana eftir siglinguna, hátt hitastig, hátt rakastig ásamt fallegum kórsöng/djammsöng dýranna um borð i bátnum. India Bríet var með riðu í rúmlega sólarhring eftir að við komum í land.
+Við fórum á vappið um Kumai með Kyu í beinu framhaldi af siglingunni, gengum og keyrðum um bæinn, fórum a markað og hálfgert byggðassafn. Við gistum tvær nætur í Pangkalan bun, við vorum orðin aðeins svefnvana eftir siglinguna, hátt hitastig, hátt rakastig ásamt fallegum kórsöng/djammsöng dýranna um borð i bátnum. India Bríet var með riðu í rúmlega sólarhring eftir að við komum í land.
 
 Í Pangkalan bun röltum við um. Heimamenn voru mjög áhugasamir um að spjalla við okkur, sumir þekktu til íslenska fótboltans, börn léku sér út á götu eða voru á leið í skóla. Við sáum víða fuglahús (swiftlet houses) en hér byggir fólk almennt íbúðarhúsin sín á einni hæð en sumir byggja margra hæða fuglahús sem tekjulind, fuglarnir hafa þá þurran stað fyrir hreiður sín sem líkja eftir helli, hreiðrin eru svo seld til súpu eða náttúrulyfja gerðar í Kína, eftir að fuglinn fer á brott úr hreiðrinu.
 
@@ -25,3 +25,69 @@ Kókdósir fást einungis til í 250ml og kókflöskur einungis til í 390ml
 Við fáum reglulega athugasemdir frá heimamönnum um hversu falleg húðin okkar er og Kristján hefur sérstaklega fengið hrós fyrir nefið sitt.
 
 Á Kalimantan (og víðar) vaxa tré (Bintaro) með ávexti sem veldur dauða ef fólk borðar hann. Íbúar nýta ávöxtinn til að eitra fyrir m.a. rottum.
+
+![](../images/2026-05-12-8ee72b88ae86.jpeg)
+
+![](../images/2026-05-12-5b2988f3f3ff.jpeg)
+
+![](../images/2026-05-12-9e277b71763a.jpeg)
+
+![](../images/2026-05-12-5682ab48f799.jpeg)
+
+![](../images/2026-05-12-13315ff5bfed.jpeg)
+
+![](../images/2026-05-12-49ce6b22071f.jpeg)
+
+![](../images/2026-05-12-e6e0e36e37be.jpeg)
+
+![](../images/2026-05-12-8813c3220cb8.jpeg)
+
+![](../images/2026-05-12-b76759b19221.jpeg)
+
+![](../images/2026-05-12-e4ee17f0ce61.jpeg)
+
+![](../images/2026-05-12-08db4595790f.jpeg)
+
+![](../images/2026-05-12-f83377bb654e.jpeg)
+
+![](../images/2026-05-12-8731f6b8c755.jpeg)
+
+![](../images/2026-05-12-089b1956166e.jpeg)
+
+![](../images/2026-05-12-1d706201e405.jpeg)
+
+![](../images/2026-05-12-dc7d6a2f3675.jpeg)
+
+![](../images/2026-05-12-ebb7b936fd89.jpeg)
+
+![](../images/2026-05-12-15e350afb7a0.jpeg)
+
+![](../images/2026-05-12-447b63330eb5.jpeg)
+
+![](../images/2026-05-12-9e2b87328db9.jpeg)
+
+![](../images/2026-05-12-8f31471d461f.jpeg)
+
+![](../images/2026-05-12-f5e024983ca0.jpeg)
+
+![](../images/2026-05-12-a8cfe4d913fd.jpeg)
+
+![](../images/2026-05-12-105d4bad2675.jpeg)
+
+![](../images/2026-05-12-6e3f5b20751f.jpeg)
+
+![](../images/2026-05-12-be9d74733f0d.jpeg)
+
+![](../images/2026-05-12-c77c46519be1.jpeg)
+
+![](../images/2026-05-12-36a05e5cbbe2.jpeg)
+
+![](../images/2026-05-12-1f5bdf97248b.jpeg)
+
+![](../images/2026-05-12-820a2c999902.jpeg)
+
+![](../images/2026-05-12-e6509d254840.jpeg)
+
+![](../images/2026-05-12-86ff36246aa2.jpeg)
+
+![](../images/2026-05-12-0ce89cec9fb9.jpeg)
