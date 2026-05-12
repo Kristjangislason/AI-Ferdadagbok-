@@ -1,8 +1,8 @@
-# Bros og PBun (8.-10. maí)
+# Bros og Bun (8.-10. maí)
 
 Leiðin lá aftur í land frá þjóðgarðinum eftir Kumai ánni.
 
-Við fórum á vappið um Kumai með Kyu í beinu framhaldi af siglingunni, gengum og keyrðum um bæinn, fórum a markað og hálfgert byggðassafn. Við gistum tvær nætur í Pangkalan bun, við vorum orðin aðeins svefnvana eftir siglinguna, hátt hitastig, hátt rakastig ásamt fallegum kórsöng/djammsöng dýranna um borð i bátnum. India Bríet var með riðu í rúmlega sólarhring eftir að við komum í land.
+Við fórum á vappið um Kumai með Kyu í beinu framhaldi af siglingunni, gengum og keyrðum um bæinn, fórum a markað og hálfgert byggðassafn. Við gistum tvær nætur í Pangkalan bun, við vorum orðin aðeins svefnvana eftir siglinguna, hátt hitastig (32*), hátt rakastig (80%) ásamt fallegum kórsöng/djammsöng dýranna þegar við vorum um borð i bátnum. India Bríet var með riðu í rúmlega sólarhring eftir að við komum í land.
 
 Í Pangkalan bun röltum við um. Heimamenn voru mjög áhugasamir um að spjalla við okkur, sumir þekktu til íslenska fótboltans, börn léku sér út á götu eða voru á leið í skóla. Við sáum víða fuglahús (swiftlet houses) en hér byggir fólk almennt íbúðarhúsin sín á einni hæð en sumir byggja margra hæða fuglahús sem tekjulind, fuglarnir hafa þá þurran stað fyrir hreiður sín sem líkja eftir helli, hreiðrin eru svo seld til súpu eða náttúrulyfja gerðar í Kína, eftir að fuglinn fer á brott úr hreiðrinu.
 
