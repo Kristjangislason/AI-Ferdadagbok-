@@ -1,4 +1,4 @@
-# Myndband frá bátsferð um Togean eyjaklasann
+# Myndband frá bátsferð um Togian eyjaklasann
 
 Góðan daginn,
 
