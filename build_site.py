@@ -62,12 +62,13 @@ def fetch_youtube_meta(video_id):
 YOUTUBE_SENTINEL_RE = re.compile(r"(?:<p>\s*)?<!--youtube:([\w-]{11})-->(?:\s*</p>)?")
 
 
-def youtube_iframe(video_id):
+def youtube_iframe(video_id, title="YouTube myndband"):
+
     return (
         '<div class="video-embed">'
-        f'<iframe src="https://www.youtube.com/embed/{video_id}" '
+        f'<iframe src="https://www.youtube-nocookie.com/embed/{video_id}" '
         'allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" '
-        'allowfullscreen loading="lazy"></iframe>'
+        f'allowfullscreen loading="lazy" title="{escape(title, quote=True)}"></iframe>'
         '</div>'
     )
 
@@ -1365,7 +1366,7 @@ def html_page(title, body, active_page=None, head_extra="", scripts="", wide=Fal
     nav_links = ""
     for href, label in NAV_PAGES:
         cls = ' class="active"' if href == active_page else ""
-        nav_links += f'<a href="{escape(href, quote=True)}"{cls}>{escape(label)}</a>'
+        nav_links += f'<a href="{escape(href, quote=True)}"{cls} {"aria-current=\"page\"" if href==active_page else ""}>{escape(label)}</a>'
     site_header = f"""\
 <header class="site-header">
 <div class="site-header-inner">
@@ -1429,7 +1430,9 @@ def parse_entry(filepath):
     locations, body_md = extract_locations_from_body(body_md)
     # Rewrite image paths: ../images/ → images/ (entries are in docs/, images in docs/images/)
     body_md = body_md.replace("](../images/", "](images/")
-    body_html = markdown.markdown(body_md)
+    body_html = markdown.markdown(body_md, extensions=["extra","fenced_code","sane_lists","nl2br"])
+    body_html = re.sub(r"<script[\s\S]*?</script>", "", body_html, flags=re.IGNORECASE)
+    body_html = re.sub(r' on\w+="[^"]*"', "", body_html)
     # Remove trailing horizontal rules (from leftover --- in Markdown)
     body_html = re.sub(r"(\s*<hr\s*/?>)+\s*$", "", body_html)
     # Wrap captioned images in <figure>/<figcaption>
@@ -1530,7 +1533,7 @@ def build():
     if not gallery_items:
         gallery_body = '<p class="gallery-empty">Engar myndir ennþá — þær birtast hér eftir því sem ferðin þróast.</p>'
     else:
-        gallery_body = f'<h2 class="section-heading">Myndir</h2>\n<div class="gallery-grid">{chr(10).join(gallery_items)}</div>'
+        gallery_body = f'<h1 class="section-heading">Myndir</h1>\n<div class="gallery-grid">{chr(10).join(gallery_items)}</div>'
     gallery_page = html_page(
         "Ferðadagbók — Myndir",
         gallery_body,
@@ -1571,7 +1574,7 @@ def build():
     all_videos.sort(key=lambda v: v.get("date", ""), reverse=True)
 
     if not all_videos:
-        videos_body = '<h2 class="section-heading">Myndbönd</h2>\n<p class="video-empty">Drónamyndefni á leiðinni — fylgist með.</p>'
+        videos_body = '<h1 class="section-heading">Myndbönd</h1>\n<p class="video-empty">Drónamyndefni á leiðinni — fylgist með.</p>'
     else:
         video_items = ""
         for v in all_videos:
@@ -1592,7 +1595,7 @@ def build():
                 f'<div class="video-meta">{date_is}{location_html}</div>'
                 f'</div></div>\n'
             )
-        videos_body = f'<h2 class="section-heading">Myndbönd</h2>\n<div class="video-grid">{video_items}</div>'
+        videos_body = f'<h1 class="section-heading">Myndbönd</h1>\n<div class="video-grid">{video_items}</div>'
 
     videos_page = html_page(
         "Ferðadagbók — Myndbönd",
@@ -1651,7 +1654,7 @@ def build():
         )
 
     landing_body = f"""\
-<div class="dagbok-layout" id="dagbok-layout">
+<h1 class="section-heading">Dagbók</h1><div class="dagbok-layout" id="dagbok-layout">
 <button type="button" class="map-show-toggle" id="map-show-toggle" aria-label="S&yacute;na kort">
 <span class="map-show-icon" aria-hidden="true">&#9678;</span>
 <span>S&yacute;na kort</span>
