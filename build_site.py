@@ -1616,9 +1616,18 @@ def build():
                     "lat": loc["lat"],
                     "lng": loc["lng"],
                     "entries": [],
+                    "images": [],
                 }
+            group = location_groups[key]
+            if loc.get("image_url"):
+                image_url = loc["image_url"]
+                if not any(img.get("url") == image_url for img in group["images"]):
+                    group["images"].append({
+                        "url": image_url,
+                        "alt": loc.get("name", ""),
+                    })
             if not any(e["slug"] == entry["slug"] for e in location_groups[key]["entries"]):
-                location_groups[key]["entries"].append({
+                group["entries"].append({
                     "title": entry["title"],
                     "date": format_date_is(entry["date"]),
                     "slug": entry["slug"],
@@ -1671,16 +1680,14 @@ def build():
     // --- Leaflet map ---
     var map = L.map('map', {{
         zoomControl: false,
-        attributionControl: false
+        attributionControl: true
     }});
     window._dagbokMap = map;
 
     L.control.zoom({{ position: 'bottomright' }}).addTo(map);
 
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{{z}}/{{y}}/{{x}}', {{
-        maxZoom: 19
-    }}).addTo(map);
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Reference/MapServer/tile/{{z}}/{{y}}/{{x}}', {{
+    L.tileLayer('https://tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png', {{
+        attribution: '&copy; OpenStreetMap contributors',
         maxZoom: 19
     }}).addTo(map);
 
@@ -1739,15 +1746,38 @@ def build():
         }}
     }}
 
+    function escapeHtml(value) {{
+        return String(value == null ? '' : value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }}
+
+    function safeAttr(value) {{
+        return escapeHtml(value);
+    }}
+
     markers.forEach(function(loc) {{
         var key = (Math.round(loc.lat * 10000) / 10000) + ',' + (Math.round(loc.lng * 10000) / 10000);
         var marker = L.marker([loc.lat, loc.lng], {{ icon: pinIcon }});
-        var popup = '<div class="popup-title">' + loc.name + '</div>';
-        if (loc.image_url) {{
-            popup += '<img class="popup-image" src="' + loc.image_url + '" alt="' + loc.name + '" loading="lazy">';
+        var safeName = escapeHtml(loc.name);
+        var popup = '<div class="popup-title">' + safeName + '</div>';
+        var images = Array.isArray(loc.images) ? loc.images : [];
+        if (images.length) {{
+            var img = images[0] || {{}};
+            var imgUrl = safeAttr(img.url || '');
+            var imgAlt = safeAttr(img.alt || loc.name || '');
+            if (imgUrl) {{
+                popup += '<img class="popup-image" src="' + imgUrl + '" alt="' + imgAlt + '" loading="lazy">';
+            }}
         }}
         loc.entries.forEach(function(e) {{
-            popup += '<a href="#' + e.slug + '" data-slug="' + e.slug + '"><span class="popup-date">' + e.date + '</span> ' + e.title + '</a><br>';
+            var safeSlug = safeAttr(e.slug);
+            var safeDate = escapeHtml(e.date);
+            var safeTitle = escapeHtml(e.title);
+            popup += '<a href="#' + safeSlug + '" data-slug="' + safeSlug + '"><span class="popup-date">' + safeDate + '</span> ' + safeTitle + '</a><br>';
         }});
         marker.bindPopup(popup, {{ maxWidth: 260 }});
         marker.on('click', function() {{
