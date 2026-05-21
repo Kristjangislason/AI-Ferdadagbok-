@@ -1,26 +1,33 @@
-# Báturinn Prince (5-8. maí)
+---
+title: Báturinn Prince (5-8. maí)
+date: 2026-05-08
+notion_page_id: 35ae812823a780f2b4a6e5e04be46f06
+slug: 2026-05-08-baturinn-prince-5-8-mai
+created_time: 2026-05-08T03:39:00.000Z
+last_edited_time: 2026-05-08T13:37:00.000Z
+---
 
-Við yfirgáfum Jakarta 5. maí og flugum til Pangkalan Bun, bær í Central Kalimantan. Þar vorum við sótt af Kyu, sem er guide-inn okkar næstu fjóra daga í bátsferð um Tanjung Puting þjóðgarðinn meðfram Sekonyer ánni. Yndislega teymið á bátnum okkar Prince samanstóð af Kyu guide, kokknum Sue, skipstjóranum Ian og aðstoðarmanninum Madan.
+Við yfirgáfum Jakarta 5\. maí og flugum til Pangkalan Bun, bær í Central Kalimantan\. Þar vorum við sótt af Kyu, sem er guide\-inn okkar næstu fjóra daga í bátsferð um Tanjung Puting þjóðgarðinn meðfram Sekonyer ánni\. Yndislega teymið á bátnum okkar Prince samanstóð af Kyu guide, kokknum Sue, skipstjóranum Ian og aðstoðarmanninum Madan\.
 
-Fyrsti dagurinn var rólegur. Við sigldum langleiðina inn í tropical heath skóginn, bátnum var lagt í árbakkanum, kvöldmaturinn var borinn fram og svefnplássinu slegið upp. Á leiðinni sáum við alls konar dýr meðal annars macaques apa, krókódíl (false gharial) og snák!
+Fyrsti dagurinn var rólegur\. Við sigldum langleiðina inn í tropical heath skóginn, bátnum var lagt í árbakkanum, kvöldmaturinn var borinn fram og svefnplássinu slegið upp\. Á leiðinni sáum við alls konar dýr meðal annars macaques apa, krókódíl \(false gharial\) og snák\!
 
-Teymið hugsaði alveg einstaklega vel um okkur þessa fjóra daga á meðan ferðinni stóð, allar máltíðir og millimál voru mjög góð. Indónesískar bananapönnukökur, ferskvatnsfiskur, alls kyns djúpsteikt, soðið eða gufusoðið grænmeti, núðluréttir, fried rice (nasi goreng), tempeh, tófú og alls kyns ávextir og ljúffengt engifer og lemongrass te.
+Teymið hugsaði alveg einstaklega vel um okkur þessa fjóra daga á meðan ferðinni stóð, allar máltíðir og millimál voru mjög góð\. Indónesískar bananapönnukökur, ferskvatnsfiskur, alls kyns djúpsteikt, soðið eða gufusoðið grænmeti, núðluréttir, fried rice \(nasi goreng\), tempeh, tófú og alls kyns ávextir og ljúffengt engifer og lemongrass te\.
 
-Næstu þrír dagar einkenndust síðan af alls konar ævintýrum og dýralífi. Þar má nefna að við sáum órangúta, proboscis og macaque apa í trjánum meðfram ánni, fylgdumst með því þegar landverðir færðu órangútönum banana og sætar kartöflur að borða, við fórum í næturrölt í gegnum hitabeltisskóginn (exposure therapy fyrir hræðilegum dýrum), þar sem við sáum ólíkar furðuverur, tarantúlur, sporðdreka, risa maura, drekaflugur og eldflugur svo eitthvað sé nefnt, við vorum vel hulin fyrir dýrunum á meðan landvörðurinn var klæddur í flipflops og gróf sig inn í hreiður sporðdrekans með fingrunum einum. Einnig blasti við okkur stjörnubjartur himinn. Þess á milli slökuðum við á um borð í bátnum á siglingu í gegnum hitabeltisskóginn meðfram Sekonyer ánni.
+Næstu þrír dagar einkenndust síðan af alls konar ævintýrum og dýralífi\. Þar má nefna að við sáum órangúta, proboscis og macaque apa í trjánum meðfram ánni, fylgdumst með því þegar landverðir færðu órangútönum banana og sætar kartöflur að borða, við fórum í næturrölt í gegnum hitabeltisskóginn \(exposure therapy fyrir hræðilegum dýrum\), þar sem við sáum ólíkar furðuverur, tarantúlur, sporðdreka, risa maura, drekaflugur og eldflugur svo eitthvað sé nefnt, við vorum vel hulin fyrir dýrunum á meðan landvörðurinn var klæddur í flipflops og gróf sig inn í hreiður sporðdrekans með fingrunum einum\. Einnig blasti við okkur stjörnubjartur himinn\. Þess á milli slökuðum við á um borð í bátnum á siglingu í gegnum hitabeltisskóginn meðfram Sekonyer ánni\.
 
-Á einum tímapunkti þegar við vorum að rölta í skóginum urðum við vitni að orangútan að leika sér á jörðinni aðeins nokkra metra frá okkur. Órangútar eru mjög forvitin dýr, hann gekk alltaf nær og nær og allt í einu stóð hann aðeins einum metra frá okkur, Indiu Bríet og Kyu, Kyu var tilbúin með bangsasnák til að kasta til hans ef hann myndi koma að okkur þar sem órangútar eru mjög hræddir við slöngur, en Kyu hefur einstakan áhuga á skriðdýrum og er mjög fróð um dýrin og náttúruna. Okkur fannst þetta magnað, spennandi og smá spooky, þar sem ráðlagt er að halda sér 5m frá dýrunum en en á sama tíma alveg mögnuð upplifun að komast svo nálægt þeim!
-Það eru varla til orð til að lýsa því sem við höfum upplifað síðustu daga í þjóðgarðinum.
+Á einum tímapunkti þegar við vorum að rölta í skóginum urðum við vitni að orangútan að leika sér á jörðinni aðeins nokkra metra frá okkur\. Órangútar eru mjög forvitin dýr, hann gekk alltaf nær og nær og allt í einu stóð hann aðeins einum metra frá okkur, Indiu Bríet og Kyu, Kyu var tilbúin með bangsasnák til að kasta til hans ef hann myndi koma að okkur þar sem órangútar eru mjög hræddir við slöngur, en Kyu hefur einstakan áhuga á skriðdýrum og er mjög fróð um dýrin og náttúruna\. Okkur fannst þetta magnað, spennandi og smá spooky, þar sem ráðlagt er að halda sér 5m frá dýrunum en en á sama tíma alveg mögnuð upplifun að komast svo nálægt þeim\!
+Það eru varla til orð til að lýsa því sem við höfum upplifað síðustu daga í þjóðgarðinum\.
 
-Ekki má sleppa því að lýsa einstaka næturlífinu. Næturnar í moskítótjaldinu okkar með útsýni yfir ánna, skóginn og dýralífið minntu á infrarauðar saunastundir með austur-evrópsku hardbase techno í forgrunni þar sem allt dýraríkið var á djamminu allan liðlanga nóttina (og daginn) ásamt söng frá mosku í fjarska.
+Ekki má sleppa því að lýsa einstaka næturlífinu\. Næturnar í moskítótjaldinu okkar með útsýni yfir ánna, skóginn og dýralífið minntu á infrarauðar saunastundir með austur\-evrópsku hardbase techno í forgrunni þar sem allt dýraríkið var á djamminu allan liðlanga nóttina \(og daginn\) ásamt söng frá mosku í fjarska\.
 
-Báturinn kom við í litlu 400 manna þorpi, Sekonyer village, þar sem Sue kom við til að kaupa klaka í ísskápinn. Við fengum að stökkva með og spóka okkur um í þorpinu á meðan, myndirnar lýsa róinni og mannlífinu þar.
+Báturinn kom við í litlu 400 manna þorpi, Sekonyer village, þar sem Sue kom við til að kaupa klaka í ísskápinn\. Við fengum að stökkva með og spóka okkur um í þorpinu á meðan, myndirnar lýsa róinni og mannlífinu þar\.
 
-Núna sitjum við í bátnum rétt ókomin til Pangkalan Bun og komin aftur í netsamband sem skýrir skort á færslum síðustu daga, það var ljúft að fá smá frið frá áreiti símans síðustu daga. Við erum bæði sammála um að þessi sigling og allt sem í henni fólst sé eitthvað það magnaðasta sem við höfum upplifað og ef einhver er á þessum slóðum eða hefur áhuga á þeim þá mælum við klárlega með. Þangað til næst!
+Núna sitjum við í bátnum rétt ókomin til Pangkalan Bun og komin aftur í netsamband sem skýrir skort á færslum síðustu daga, það var ljúft að fá smá frið frá áreiti símans síðustu daga\. Við erum bæði sammála um að þessi sigling og allt sem í henni fólst sé eitthvað það magnaðasta sem við höfum upplifað og ef einhver er á þessum slóðum eða hefur áhuga á þeim þá mælum við klárlega með\. Þangað til næst\!
 
 Áhugavert:
-Á fluginu frá Jakarta til Pangkalan Bun var mjög augljóst hversu hátt sjávarborðið er í samanburði við land og byggingar.
+Á fluginu frá Jakarta til Pangkalan Bun var mjög augljóst hversu hátt sjávarborðið er í samanburði við land og byggingar\.
 
-Í þorpinu komum við við í lítilli búð, þar var að finna allskyns drykkjarföng og mat. Þar voru einnig til nokkrar tegundir af indónesískum orkuskotum sem starfsmenn pálma akranna drekka vegna langra vinnudaga og líkamlegrar vinnu. Athugavert var hversu mikið taurin og koffeinmagnið var.
+Í þorpinu komum við við í lítilli búð, þar var að finna allskyns drykkjarföng og mat\. Þar voru einnig til nokkrar tegundir af indónesískum orkuskotum sem starfsmenn pálma akranna drekka vegna langra vinnudaga og líkamlegrar vinnu\. Athugavert var hversu mikið taurin og koffeinmagnið var\.
 
 ![](../images/2026-05-08-b441df02eda4.jpeg)
 
