@@ -1667,7 +1667,7 @@ def build():
 </button>
 <div class="map-wrap">
 <div id="map" class="map-container"></div>
-<div class="map-hint">Smelltu &aacute; punktana til a&eth; opna f&aelig;rslur</div>
+<div class="map-hint">Smelltu &aacute; punktana til a&eth; sj&aacute; myndir og sta&eth;setningar</div>
 </div>
 </aside>
 </div>"""
@@ -1780,17 +1780,6 @@ def build():
             popup += '<a href="#' + safeSlug + '" data-slug="' + safeSlug + '"><span class="popup-date">' + safeDate + '</span> ' + safeTitle + '</a><br>';
         }});
         marker.bindPopup(popup, {{ maxWidth: 260 }});
-        marker.on('click', function() {{
-            if (loc.entries.length === 0) return;
-            var slug = loc.entries[0].slug;
-            var d = document.getElementById(slug);
-            if (!d) return;
-            if (d.open) {{
-                d.open = false;
-            }} else {{
-                openEntry(slug, true);
-            }}
-        }});
         marker.on('mouseover', function() {{
             setRowsClass(loc.entries.map(function(e) {{ return e.slug; }}), 'highlighted', true);
         }});
