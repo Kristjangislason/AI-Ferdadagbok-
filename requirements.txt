@@ -1,4 +1,5 @@
-markdown
-notion-client
-python-dotenv
-requests
+markdown==3.8.2
+notion-client==2.4.0
+python-dotenv==1.1.0
+pytest==8.3.5
+requests==2.32.3
