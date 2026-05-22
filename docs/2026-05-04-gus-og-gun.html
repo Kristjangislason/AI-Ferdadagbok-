@@ -39,22 +39,22 @@ Gus fræddi okkur um helstu kennileiti, staði, pólitík og menninguna hér í 
 <p>Úrhelli rigning var í nokkra stund sem hjálpar ekki borginni sem sígur/sekkur um 25cm á ári sem sást vel við höfnina þar sem yfirborð sjávar var hærra en landið sjálft og aðskilið með steyptum vegg. Síðan tók við keyrsla og spjall tilbaka á hótelið og mjög gott padang padang í kvöldmat eftir skemmtilegan og lærdómsríkan dag.</p>
 <p>Áhugavert dagsins: einstaklingar í Jakarta kjósa að standa í miðju umferðaröngþveiti og reyna að stýra umferðinni í von um að fá þjórfé frá bílstjórum, hægt er að þéna meira á mánuði við umferðarstjórnun en við hefðbundið skrifstofustarf.</p>
 <p>Yfirvöld hyggjast flytja höfuðstöðvar Indónesíu frá Jakarta til Kalimantan vegna landsigs, en það er okkar næsti áfangastaður. Næsta uppfærsla verður þaðan.</p>
-<p><img src="images/2026-05-04-77c391f78a74.jpeg" alt=""></p>
+<p><img loading="lazy" decoding="async" src="images/2026-05-04-77c391f78a74.jpeg" alt=""></p>
 <p><a href="">embed</a></p>
-<p><img src="images/2026-05-04-d738ca63358c.jpeg" alt=""></p>
-<p><img src="images/2026-05-04-4b7236aeedde.jpeg" alt=""></p>
-<p><img src="images/2026-05-04-5160ba6211be.jpeg" alt=""></p>
-<p><img src="images/2026-05-04-b68548395e35.jpeg" alt=""></p>
+<p><img loading="lazy" decoding="async" src="images/2026-05-04-d738ca63358c.jpeg" alt=""></p>
+<p><img loading="lazy" decoding="async" src="images/2026-05-04-4b7236aeedde.jpeg" alt=""></p>
+<p><img loading="lazy" decoding="async" src="images/2026-05-04-5160ba6211be.jpeg" alt=""></p>
+<p><img loading="lazy" decoding="async" src="images/2026-05-04-b68548395e35.jpeg" alt=""></p>
 <p><a href="">embed</a></p>
-<p><img src="images/2026-05-04-3cd4a9138272.jpeg" alt=""></p>
+<p><img loading="lazy" decoding="async" src="images/2026-05-04-3cd4a9138272.jpeg" alt=""></p>
 <p><a href="">embed</a></p>
-<p><img src="images/2026-05-04-58c589b3f93a.jpeg" alt=""></p>
+<p><img loading="lazy" decoding="async" src="images/2026-05-04-58c589b3f93a.jpeg" alt=""></p>
 <p><a href="">embed</a></p>
 <p><a href="">embed</a></p>
 <p><a href="">embed</a></p>
-<p><img src="images/2026-05-04-174a27d5681f.jpeg" alt=""></p>
+<p><img loading="lazy" decoding="async" src="images/2026-05-04-174a27d5681f.jpeg" alt=""></p>
 <p><a href="">embed</a></p>
-<p><img src="images/2026-05-04-b95075d3b304.jpeg" alt=""></p>
+<p><img loading="lazy" decoding="async" src="images/2026-05-04-b95075d3b304.jpeg" alt=""></p>
 <p><a href="">embed</a></p></article><nav class="entry-pager"><a class="entry-pager-prev" href="2026-05-03-nasi-goreng-og-skvisuskor.html"><span class="pager-direction">&larr; Fyrri f&aelig;rsla</span><span class="pager-title">Nasi goreng og skvísuskór</span></a><a class="entry-pager-next" href="2026-05-08-baturinn-prince-5-8-mai.html"><span class="pager-direction">N&aelig;sta f&aelig;rsla &rarr;</span><span class="pager-title">Báturinn Prince (5-8. maí)</span></a></nav>
 </div>
 <script>
@@ -72,14 +72,19 @@ Gus fræddi okkur um helstu kennileiti, staði, pólitík og menninguna hér í 
 
     var overlay = document.createElement('div');
     overlay.className = 'lightbox';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-label', 'Myndagluggi');
     overlay.innerHTML = ''
-        + '<button type="button" class="lightbox-close" aria-label="Loka">&times;</button>'
-        + '<button type="button" class="lightbox-prev" aria-label="Fyrri mynd">&larr;</button>'
-        + '<div class="lightbox-counter"></div>'
+        + '<div class="lightbox-topbar">'
+        +   '<div class="lightbox-counter" aria-live="polite"></div>'
+        +   '<button type="button" class="lightbox-close" aria-label="Loka mynd">&times;</button>'
+        + '</div>'
         + '<figure class="lightbox-figure">'
         +   '<img class="lightbox-img" alt="">'
         +   '<figcaption class="lightbox-caption"></figcaption>'
         + '</figure>'
+        + '<button type="button" class="lightbox-prev" aria-label="Fyrri mynd">&larr;</button>'
         + '<button type="button" class="lightbox-next" aria-label="N&aelig;sta mynd">&rarr;</button>';
     document.body.appendChild(overlay);
     if (imgs.length < 2) overlay.classList.add('is-single');
@@ -88,6 +93,10 @@ Gus fræddi okkur um helstu kennileiti, staði, pólitík og menninguna hér í 
     var capEl = overlay.querySelector('.lightbox-caption');
     var counterEl = overlay.querySelector('.lightbox-counter');
     var current = 0;
+    var lastFocused = null;
+    var touchStartX = null;
+    var touchStartY = null;
+    var focusablesSelector = 'button,[href],[tabindex]:not([tabindex="-1"])';
 
     function update() {
         var src = imgs[current];
@@ -98,24 +107,34 @@ Gus fræddi okkur um helstu kennileiti, staði, pólitík og menninguna hér í 
     }
 
     function open(i) {
+        lastFocused = document.activeElement;
         current = i;
         update();
         overlay.classList.add('open');
         document.body.classList.add('lightbox-open');
+        overlay.querySelector('.lightbox-close').focus();
     }
 
     function close() {
         overlay.classList.remove('open');
         document.body.classList.remove('lightbox-open');
+        if (lastFocused && typeof lastFocused.focus === 'function') lastFocused.focus();
     }
 
     function prev() { current = (current - 1 + imgs.length) % imgs.length; update(); }
     function next() { current = (current + 1) % imgs.length; update(); }
 
     imgs.forEach(function(img, i) {
+        img.setAttribute('tabindex', '0');
         img.addEventListener('click', function(e) {
             e.preventDefault();
             open(i);
+        });
+        img.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                open(i);
+            }
         });
     });
 
@@ -127,14 +146,46 @@ Gus fræddi okkur um helstu kennileiti, staði, pólitík og menninguna hér í 
         e.stopPropagation(); next();
     });
     overlay.addEventListener('click', function(e) {
-        if (e.target === overlay || e.target.classList.contains('lightbox-figure')) close();
+        if (e.target === overlay) close();
     });
+    overlay.querySelector('.lightbox-figure').addEventListener('click', function(e) { e.stopPropagation(); });
+    overlay.addEventListener('touchstart', function(e) {
+        if (!overlay.classList.contains('open')) return;
+        var t = e.changedTouches && e.changedTouches[0];
+        if (!t) return;
+        touchStartX = t.clientX;
+        touchStartY = t.clientY;
+    }, { passive: true });
+    overlay.addEventListener('touchend', function(e) {
+        if (!overlay.classList.contains('open')) return;
+        var t = e.changedTouches && e.changedTouches[0];
+        if (!t || touchStartX === null) return;
+        var dx = t.clientX - touchStartX;
+        var dy = t.clientY - touchStartY;
+        if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+            if (dx < 0) next();
+            else prev();
+        }
+        touchStartX = null; touchStartY = null;
+    }, { passive: true });
 
     document.addEventListener('keydown', function(e) {
         if (!overlay.classList.contains('open')) return;
         if (e.key === 'Escape') close();
         else if (e.key === 'ArrowLeft') prev();
         else if (e.key === 'ArrowRight') next();
+        else if (e.key === 'Tab') {
+            var focusables = Array.prototype.slice.call(overlay.querySelectorAll(focusablesSelector))
+                .filter(function(el) { return !el.disabled && el.offsetParent !== null; });
+            if (!focusables.length) return;
+            var first = focusables[0];
+            var last = focusables[focusables.length - 1];
+            if (e.shiftKey && document.activeElement === first) {
+                e.preventDefault(); last.focus();
+            } else if (!e.shiftKey && document.activeElement === last) {
+                e.preventDefault(); first.focus();
+            }
+        }
     });
 })();
 </script>

@@ -8,6 +8,7 @@ import re
 import shutil
 from html import escape
 from pathlib import Path
+from datetime import datetime
 
 import markdown
 import requests
@@ -229,6 +230,16 @@ html { scrollbar-gutter: stable; }
     to   { opacity: 1; transform: translateY(0); }
 }
 
+
+:focus-visible {
+    outline: 2px solid var(--accent-light);
+    outline-offset: 2px;
+}
+
+body {
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     color: var(--text);
@@ -258,6 +269,8 @@ body {
 
 .site-header-inner {
     max-width: var(--max-w-wide);
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
     margin: 0 auto;
     padding: 16px 28px;
     display: flex;
@@ -773,6 +786,7 @@ article figcaption {
 }
 
 .entry-row > summary {
+    min-height: 44px;
     list-style: none;
     cursor: pointer;
     display: grid;
@@ -804,6 +818,7 @@ article figcaption {
 }
 
 .entry-row-title {
+    overflow-wrap: anywhere;
     font-family: 'Cormorant Garamond', Georgia, serif;
     font-size: 22px;
     font-weight: 500;
@@ -1003,9 +1018,11 @@ article figcaption {
     .map-container { height: 320px; min-height: 0; max-height: none; }
     .gallery-grid { columns: 2; }
     .video-grid { grid-template-columns: 1fr; }
-    .entry-row > summary { grid-template-columns: 90px 1fr auto 14px; gap: 14px; padding: 18px 16px; }
+    .entry-row > summary {
+    min-height: 44px; grid-template-columns: 90px 1fr auto 14px; gap: 14px; padding: 18px 16px; }
     .entry-row-body { padding: 8px 16px 36px; }
-    .entry-row-title { font-size: 19px; }
+    .entry-row-title {
+    overflow-wrap: anywhere; font-size: 19px; }
     .map-hide-toggle { top: 12px; right: 12px; }
     .map-show-toggle { position: static; margin: 0 0 20px; }
 }
@@ -1029,6 +1046,7 @@ article figcaption {
     }
     .back-link { margin-bottom: 28px; }
     .entry-row > summary {
+    min-height: 44px;
         grid-template-columns: 1fr 14px;
         grid-template-areas:
             "date chevron"
@@ -1038,7 +1056,8 @@ article figcaption {
         padding: 18px 4px;
     }
     .entry-row-date { grid-area: date; }
-    .entry-row-title { grid-area: title; }
+    .entry-row-title {
+    overflow-wrap: anywhere; grid-area: title; }
     .entry-row-places { grid-area: places; justify-self: start; }
     .entry-row-chevron { grid-area: chevron; align-self: center; }
 }
@@ -1053,12 +1072,17 @@ article figcaption {
     -webkit-backdrop-filter: blur(12px);
     display: none;
     z-index: 10000;
-    align-items: center;
-    justify-content: center;
     animation: lightboxIn 0.2s ease;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding:
+        calc(12px + env(safe-area-inset-top))
+        calc(12px + env(safe-area-inset-right))
+        calc(12px + env(safe-area-inset-bottom))
+        calc(12px + env(safe-area-inset-left));
 }
 
-.lightbox.open { display: flex; }
+.lightbox.open { display: block; }
 
 @keyframes lightboxIn {
     from { opacity: 0; }
@@ -1067,22 +1091,27 @@ article figcaption {
 
 .lightbox-figure {
     position: relative;
-    max-width: 92vw;
-    max-height: 90vh;
+    z-index: 2;
+    width: min(960px, calc(100vw - 24px - env(safe-area-inset-left) - env(safe-area-inset-right)));
+    height: calc(100dvh - 180px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    margin: calc(54px + env(safe-area-inset-top)) auto calc(88px + env(safe-area-inset-bottom));
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 16px;
+    justify-content: center;
+    gap: 12px;
+    pointer-events: none;
 }
 
 .lightbox-img {
-    max-width: 92vw;
-    max-height: 82vh;
+    max-width: 100%;
+    max-height: 100%;
     width: auto;
     height: auto;
     object-fit: contain;
     border-radius: 6px;
     box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+    pointer-events: auto;
 }
 
 .lightbox-caption {
@@ -1097,8 +1126,9 @@ article figcaption {
 }
 
 .lightbox-counter {
-    position: absolute;
-    top: 24px;
+    position: fixed;
+    z-index: 4;
+    top: calc(12px + env(safe-area-inset-top));
     left: 50%;
     transform: translateX(-50%);
     color: var(--text-dim);
@@ -1110,13 +1140,17 @@ article figcaption {
     padding: 6px 14px;
     border-radius: 999px;
     pointer-events: none;
+    min-height: 30px;
+    display: flex;
+    align-items: center;
 }
 
 .lightbox-close,
 .lightbox-prev,
 .lightbox-next {
-    position: absolute;
-    background: rgba(237, 232, 223, 0.06);
+    position: fixed;
+    z-index: 5;
+    background: rgba(19, 30, 23, 0.9);
     color: var(--text);
     border: 1px solid rgba(237, 232, 223, 0.15);
     cursor: pointer;
@@ -1140,8 +1174,8 @@ article figcaption {
 .lightbox-next:active { transform: scale(0.92); }
 
 .lightbox-close {
-    top: 20px;
-    right: 20px;
+    top: calc(12px + env(safe-area-inset-top));
+    right: calc(12px + env(safe-area-inset-right));
     width: 44px;
     height: 44px;
     font-size: 26px;
@@ -1150,21 +1184,21 @@ article figcaption {
 
 .lightbox-prev,
 .lightbox-next {
-    top: 50%;
-    transform: translateY(-50%);
+    bottom: calc(12px + env(safe-area-inset-bottom));
     width: 52px;
     height: 52px;
     font-size: 22px;
 }
 
-.lightbox-prev { left: 24px; }
-.lightbox-next { right: 24px; }
+.lightbox-prev { left: calc(12px + env(safe-area-inset-left)); }
+.lightbox-next { right: calc(12px + env(safe-area-inset-right)); }
 
 .lightbox.is-single .lightbox-prev,
 .lightbox.is-single .lightbox-next,
 .lightbox.is-single .lightbox-counter { display: none; }
 
 body.lightbox-open { overflow: hidden; }
+body.lightbox-open { touch-action: none; }
 
 /* Make article and gallery images clickable */
 article img,
@@ -1181,7 +1215,7 @@ article img,
     .lightbox-prev { left: 12px; }
     .lightbox-next { right: 12px; }
     .lightbox-close { top: 12px; right: 12px; }
-    .lightbox-counter { top: 16px; font-size: 10px; }
+    .lightbox-counter { font-size: 10px; }
     .lightbox-caption { font-size: 13px; padding: 0 16px; }
 }
 """
@@ -1293,14 +1327,19 @@ LIGHTBOX_SCRIPT = """\
 
     var overlay = document.createElement('div');
     overlay.className = 'lightbox';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-label', 'Myndagluggi');
     overlay.innerHTML = ''
-        + '<button type="button" class="lightbox-close" aria-label="Loka">&times;</button>'
-        + '<button type="button" class="lightbox-prev" aria-label="Fyrri mynd">&larr;</button>'
-        + '<div class="lightbox-counter"></div>'
+        + '<div class="lightbox-topbar">'
+        +   '<div class="lightbox-counter" aria-live="polite"></div>'
+        +   '<button type="button" class="lightbox-close" aria-label="Loka mynd">&times;</button>'
+        + '</div>'
         + '<figure class="lightbox-figure">'
         +   '<img class="lightbox-img" alt="">'
         +   '<figcaption class="lightbox-caption"></figcaption>'
         + '</figure>'
+        + '<button type="button" class="lightbox-prev" aria-label="Fyrri mynd">&larr;</button>'
         + '<button type="button" class="lightbox-next" aria-label="N&aelig;sta mynd">&rarr;</button>';
     document.body.appendChild(overlay);
     if (imgs.length < 2) overlay.classList.add('is-single');
@@ -1309,6 +1348,10 @@ LIGHTBOX_SCRIPT = """\
     var capEl = overlay.querySelector('.lightbox-caption');
     var counterEl = overlay.querySelector('.lightbox-counter');
     var current = 0;
+    var lastFocused = null;
+    var touchStartX = null;
+    var touchStartY = null;
+    var focusablesSelector = 'button,[href],[tabindex]:not([tabindex="-1"])';
 
     function update() {
         var src = imgs[current];
@@ -1319,24 +1362,34 @@ LIGHTBOX_SCRIPT = """\
     }
 
     function open(i) {
+        lastFocused = document.activeElement;
         current = i;
         update();
         overlay.classList.add('open');
         document.body.classList.add('lightbox-open');
+        overlay.querySelector('.lightbox-close').focus();
     }
 
     function close() {
         overlay.classList.remove('open');
         document.body.classList.remove('lightbox-open');
+        if (lastFocused && typeof lastFocused.focus === 'function') lastFocused.focus();
     }
 
     function prev() { current = (current - 1 + imgs.length) % imgs.length; update(); }
     function next() { current = (current + 1) % imgs.length; update(); }
 
     imgs.forEach(function(img, i) {
+        img.setAttribute('tabindex', '0');
         img.addEventListener('click', function(e) {
             e.preventDefault();
             open(i);
+        });
+        img.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                open(i);
+            }
         });
     });
 
@@ -1348,14 +1401,46 @@ LIGHTBOX_SCRIPT = """\
         e.stopPropagation(); next();
     });
     overlay.addEventListener('click', function(e) {
-        if (e.target === overlay || e.target.classList.contains('lightbox-figure')) close();
+        if (e.target === overlay) close();
     });
+    overlay.querySelector('.lightbox-figure').addEventListener('click', function(e) { e.stopPropagation(); });
+    overlay.addEventListener('touchstart', function(e) {
+        if (!overlay.classList.contains('open')) return;
+        var t = e.changedTouches && e.changedTouches[0];
+        if (!t) return;
+        touchStartX = t.clientX;
+        touchStartY = t.clientY;
+    }, { passive: true });
+    overlay.addEventListener('touchend', function(e) {
+        if (!overlay.classList.contains('open')) return;
+        var t = e.changedTouches && e.changedTouches[0];
+        if (!t || touchStartX === null) return;
+        var dx = t.clientX - touchStartX;
+        var dy = t.clientY - touchStartY;
+        if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+            if (dx < 0) next();
+            else prev();
+        }
+        touchStartX = null; touchStartY = null;
+    }, { passive: true });
 
     document.addEventListener('keydown', function(e) {
         if (!overlay.classList.contains('open')) return;
         if (e.key === 'Escape') close();
         else if (e.key === 'ArrowLeft') prev();
         else if (e.key === 'ArrowRight') next();
+        else if (e.key === 'Tab') {
+            var focusables = Array.prototype.slice.call(overlay.querySelectorAll(focusablesSelector))
+                .filter(function(el) { return !el.disabled && el.offsetParent !== null; });
+            if (!focusables.length) return;
+            var first = focusables[0];
+            var last = focusables[focusables.length - 1];
+            if (e.shiftKey && document.activeElement === first) {
+                e.preventDefault(); last.focus();
+            } else if (!e.shiftKey && document.activeElement === last) {
+                e.preventDefault(); first.focus();
+            }
+        }
     });
 })();
 </script>
@@ -1436,6 +1521,23 @@ def parse_front_matter(text):
     return metadata, body
 
 
+ISO_PREFIX_RE = re.compile(r"^(\d{4}-\d{2}-\d{2})[\s\-:–—]+(.+)$")
+
+
+def normalize_date(value):
+    """Normalize dates to YYYY-MM-DD where possible."""
+    if not value:
+        return ""
+    value = value.strip()
+    m = re.match(r"^(\d{4}-\d{2}-\d{2})", value)
+    if m:
+        return m.group(1)
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00")).date().isoformat()
+    except ValueError:
+        return value
+
+
 def parse_entry(filepath):
     """Parse a Markdown entry file into metadata."""
     text = filepath.read_text()
@@ -1448,7 +1550,14 @@ def parse_entry(filepath):
     clean_name = re.sub(r"[^0-9a-zA-Z._-]", "", filepath.name)
     date_match = re.match(r"(\d{4}-\d{2}-\d{2})", clean_name)
     fallback_date = date_match.group(1) if date_match else clean_name[:10]
-    date_str = (metadata.get("date") or fallback_date).strip()
+    created_time_date = normalize_date(metadata.get("created_time", ""))
+    date_str = normalize_date(metadata.get("date") or created_time_date or fallback_date)
+
+    # If title starts with YYYY-MM-DD, use that as display date and strip it from the visible title.
+    title_date_match = ISO_PREFIX_RE.match(title)
+    if title_date_match:
+        date_str = normalize_date(title_date_match.group(1))
+        title = title_date_match.group(2).strip()
 
     slug = (metadata.get("slug") or filepath.stem).strip()
 
@@ -1466,13 +1575,18 @@ def parse_entry(filepath):
     body_html = re.sub(r' on\w+="[^"]*"', "", body_html)
     body_html = re.sub(r"(\s*<hr\s*/?>)+\s*$", "", body_html)
 
-    def _img_to_figure(m):
-        alt, src = m.group(1), m.group(2)
+    def _img_to_figure_tag(m):
+        attrs = m.group(1)
+        alt_match = re.search(r'alt="([^"]*)"', attrs)
+        src_match = re.search(r'src="([^"]*)"', attrs)
+        alt = alt_match.group(1) if alt_match else ""
+        src = src_match.group(1) if src_match else ""
         if alt:
             return f'<figure><img src="{src}" alt="{alt}"><figcaption>{alt}</figcaption></figure>'
         return f'<img src="{src}" alt="">'
 
-    body_html = re.sub(r'<img\s+alt="([^"]*)"\s+src="([^"]*)"(?:\s*/)?>', _img_to_figure, body_html)
+    body_html = re.sub(r'<img\s+([^>]*?)(?:\s*/)?>', _img_to_figure_tag, body_html)
+    body_html = body_html.replace("<img ", '<img loading="lazy" decoding="async" ')
     youtube_ids = YOUTUBE_SENTINEL_RE.findall(body_html)
     body_html = YOUTUBE_SENTINEL_RE.sub(lambda m: youtube_iframe(m.group(1)), body_html)
 
@@ -1543,12 +1657,17 @@ def build():
     gallery_items = []
     seen_srcs = set()
     for entry in reversed(entries):
-        for m in re.finditer(r'<(?:figure><)?img\s+src="([^"]*)"(?:\s+alt="([^"]*)")?[^>]*>(?:<figcaption>([^<]*)</figcaption></figure>)?', entry["body_html"]):
-            src = m.group(1)
+        for m in re.finditer(r'<img\s+([^>]*?)>', entry["body_html"]):
+            attrs = m.group(1)
+            src_m = re.search(r'src="([^"]*)"', attrs)
+            if not src_m:
+                continue
+            src = src_m.group(1)
             if src in seen_srcs:
                 continue
             seen_srcs.add(src)
-            caption = m.group(3) or m.group(2) or ""
+            alt_m = re.search(r'alt="([^"]*)"', attrs)
+            caption = alt_m.group(1) if alt_m else ""
             safe_caption = escape(caption)
             caption_html = f'<div class="gallery-caption">{safe_caption}</div>' if caption else ""
             gallery_items.append(
