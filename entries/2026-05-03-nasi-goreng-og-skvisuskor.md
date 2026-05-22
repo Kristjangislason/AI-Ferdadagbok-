@@ -4,7 +4,7 @@ date: 2026-05-03
 notion_page_id: 355e812823a780f392d9ebfd7ff969c4
 slug: 2026-05-03-nasi-goreng-og-skvisuskor
 created_time: 2026-05-03T16:47:00.000Z
-last_edited_time: 2026-05-03T17:31:00.000Z
+last_edited_time: 2026-05-22T05:42:00.000Z
 ---
 
 Eftir mjöög langt ferðalag sem gekk þó smurt fyrir sig lentum við í Jakarta, höfuðborg Indónesíu seint að kvöldi\. Við kynntumst frábærum Jakartabúa, Joe, í síðasta flugleggnum, hann gaf okkur hin ýmsu ráð og staði til að skoða í stutta stoppinu í Jakarta, við spjölluðum og hlógum mikið sem stytti okkur stundir\!
@@ -18,8 +18,6 @@ Samkvæmt Joe og því sem við höfðum lesið okkur til um, eru moll ein helst
 ![](../images/2026-05-03-8a69a6f42099.jpeg)
 
 ![](../images/2026-05-03-bda27d39bb49.jpeg)
-
-[embed]()
 
 ![](../images/2026-05-03-3e75d7552dac.jpeg)
 
