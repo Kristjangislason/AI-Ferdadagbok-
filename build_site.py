@@ -1412,37 +1412,67 @@ def html_page(title, body, active_page=None, head_extra="", scripts="", wide=Fal
 """
 
 
+
+
+def parse_front_matter(text):
+    """Parse simple YAML-style front matter and return (metadata, body_markdown)."""
+    if not text.startswith("---\n"):
+        return {}, text
+    end = text.find("\n---", 4)
+    if end == -1:
+        return {}, text
+    raw = text[4:end].strip("\n")
+    body = text[end + 4:]
+    if body.startswith("\n"):
+        body = body[1:]
+    metadata = {}
+    for line in raw.splitlines():
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        if ":" not in line:
+            continue
+        key, value = line.split(":", 1)
+        metadata[key.strip()] = value.strip()
+    return metadata, body
+
+
 def parse_entry(filepath):
     """Parse a Markdown entry file into metadata."""
     text = filepath.read_text()
-    # Extract title from first # heading
-    title_match = re.match(r"^#\s+(.+)$", text, re.MULTILINE)
-    title = title_match.group(1) if title_match else filepath.stem
+    metadata, content = parse_front_matter(text)
 
-    # Extract date from filename (always present — filenames are yyyy-mm-dd-slug.md)
+    # Prefer front matter title/date when available, fallback to legacy heading/filename.
+    title_match = re.match(r"^#\s+(.+)$", content, re.MULTILINE)
+    title = (metadata.get("title") or (title_match.group(1) if title_match else filepath.stem)).strip()
+
     clean_name = re.sub(r"[^0-9a-zA-Z._-]", "", filepath.name)
     date_match = re.match(r"(\d{4}-\d{2}-\d{2})", clean_name)
-    date_str = date_match.group(1) if date_match else clean_name[:10]
+    fallback_date = date_match.group(1) if date_match else clean_name[:10]
+    date_str = (metadata.get("date") or fallback_date).strip()
 
-    # Convert to HTML (skip the title line, we render it separately)
-    body_md = text[title_match.end():].strip() if title_match else text
-    # Pull "Staðir: A, B" out of the body — used for map pins, hidden from the page
+    slug = (metadata.get("slug") or filepath.stem).strip()
+
+    # Legacy compatibility: skip first H1 in body if front matter is not present.
+    body_md = content
+    if title_match and not metadata:
+        body_md = content[title_match.end():].strip()
+
+    # Pull "Staður: A, lat, lng" lines out of the body for map pins only.
     locations, body_md = extract_locations_from_body(body_md)
-    # Rewrite image paths: ../images/ → images/ (entries are in docs/, images in docs/images/)
     body_md = body_md.replace("](../images/", "](images/")
-    body_html = markdown.markdown(body_md, extensions=["extra","fenced_code","sane_lists","nl2br"])
+
+    body_html = markdown.markdown(body_md, extensions=["extra", "fenced_code", "sane_lists", "nl2br"])
     body_html = re.sub(r"<script[\s\S]*?</script>", "", body_html, flags=re.IGNORECASE)
     body_html = re.sub(r' on\w+="[^"]*"', "", body_html)
-    # Remove trailing horizontal rules (from leftover --- in Markdown)
     body_html = re.sub(r"(\s*<hr\s*/?>)+\s*$", "", body_html)
-    # Wrap captioned images in <figure>/<figcaption>
+
     def _img_to_figure(m):
         alt, src = m.group(1), m.group(2)
         if alt:
             return f'<figure><img src="{src}" alt="{alt}"><figcaption>{alt}</figcaption></figure>'
         return f'<img src="{src}" alt="">'
+
     body_html = re.sub(r'<img\s+alt="([^"]*)"\s+src="([^"]*)"(?:\s*/)?>', _img_to_figure, body_html)
-    # Replace YouTube sentinels with embedded iframes, and remember the IDs
     youtube_ids = YOUTUBE_SENTINEL_RE.findall(body_html)
     body_html = YOUTUBE_SENTINEL_RE.sub(lambda m: youtube_iframe(m.group(1)), body_html)
 
@@ -1450,9 +1480,9 @@ def parse_entry(filepath):
         "title": title,
         "date": date_str,
         "body_html": body_html,
-        "slug": filepath.stem,
+        "slug": slug,
         "locations": locations,
-        "image_locations": extract_image_locations(text),
+        "image_locations": extract_image_locations(body_md),
         "youtube_ids": youtube_ids,
     }
 

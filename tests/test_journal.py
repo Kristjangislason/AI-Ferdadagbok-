@@ -15,3 +15,20 @@ def test_rich_text_formatting_and_escape():
     assert "[**A&B" in out
     assert "https://example.com" in out
     assert md_escape("[]()") == "\\[\\]\\(\\)"
+
+
+from process_journal import parse_title_and_date
+
+
+def test_parse_title_and_date_preserves_parenthetical_title_and_uses_created_time():
+    page = {"created_time": "2026-05-20T13:12:00.000Z"}
+    date, title = parse_title_and_date("Bað (13.-16. maí)", page)
+    assert date == "2026-05-20"
+    assert title == "Bað (13.-16. maí)"
+
+
+def test_parse_title_and_date_prefix_overrides_date_and_strips_prefix():
+    page = {"created_time": "2026-05-01T00:00:00.000Z"}
+    date, title = parse_title_and_date("2026-05-20 Myndband frá bátsferð", page)
+    assert date == "2026-05-20"
+    assert title == "Myndband frá bátsferð"
