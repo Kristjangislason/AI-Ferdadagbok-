@@ -1657,12 +1657,17 @@ def build():
     gallery_items = []
     seen_srcs = set()
     for entry in reversed(entries):
-        for m in re.finditer(r'<(?:figure><)?img\s+src="([^"]*)"(?:\s+alt="([^"]*)")?[^>]*>(?:<figcaption>([^<]*)</figcaption></figure>)?', entry["body_html"]):
-            src = m.group(1)
+        for m in re.finditer(r'<img\s+([^>]*?)>', entry["body_html"]):
+            attrs = m.group(1)
+            src_m = re.search(r'src="([^"]*)"', attrs)
+            if not src_m:
+                continue
+            src = src_m.group(1)
             if src in seen_srcs:
                 continue
             seen_srcs.add(src)
-            caption = m.group(3) or m.group(2) or ""
+            alt_m = re.search(r'alt="([^"]*)"', attrs)
+            caption = alt_m.group(1) if alt_m else ""
             safe_caption = escape(caption)
             caption_html = f'<div class="gallery-caption">{safe_caption}</div>' if caption else ""
             gallery_items.append(
