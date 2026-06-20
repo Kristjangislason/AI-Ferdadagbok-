@@ -1451,7 +1451,8 @@ def html_page(title, body, active_page=None, head_extra="", scripts="", wide=Fal
     nav_links = ""
     for href, label in NAV_PAGES:
         cls = ' class="active"' if href == active_page else ""
-        nav_links += f'<a href="{escape(href, quote=True)}"{cls} {"aria-current=\"page\"" if href==active_page else ""}>{escape(label)}</a>'
+        aria = ' aria-current="page"' if href == active_page else ""
+        nav_links += f'<a href="{escape(href, quote=True)}"{cls}{aria}>{escape(label)}</a>'
     site_header = f"""\
 <header class="site-header">
 <div class="site-header-inner">
