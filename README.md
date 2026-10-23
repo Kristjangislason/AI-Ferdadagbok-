@@ -17,3 +17,21 @@ No AI rewriting — what you type in Notion is exactly what shows up on the site
 - [Leaflet](https://leafletjs.com/) for the map
 - Vanilla JS for the lightbox and accordion
 - GitHub Actions (hourly) → Netlify (auto-deploy from `main`)
+
+## Content and download safety
+
+Imported Markdown keeps normal formatting, images and validated YouTube embeds;
+active HTML and unsafe link schemes are removed before publishing. Entry slugs
+must be a single filename using letters, numbers, hyphens or underscores.
+
+Image downloads use HTTPS, check each redirect, and accept only raster images up
+to 20 MiB. Notion's standard file hosts and `images.unsplash.com` are allowed by
+default. For other trusted image sources, set `IMAGE_DOWNLOAD_HOSTS` to a
+comma-separated list of exact hostnames in your environment, or as a GitHub
+Actions repository variable. Add only origins you trust; wildcard hosts are not
+supported. The importer does not use ambient proxy settings or `.netrc` login
+credentials for image downloads. A failed sync does not prune existing entries.
+
+Run `pip install -r requirements.txt` and `pytest -q` before changing the importer
+or generator. After merging generator changes, run **Process Journal** (or wait
+for its hourly schedule) to rebuild the published files.

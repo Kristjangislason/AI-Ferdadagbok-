@@ -11,7 +11,10 @@ from pathlib import Path
 from datetime import datetime
 
 import markdown
+import nh3
 import requests
+
+from content_security import validate_slug
 
 ENTRIES_DIR = Path(__file__).parent / "entries"
 IMAGES_DIR = Path(__file__).parent / "images"
@@ -64,7 +67,8 @@ YOUTUBE_SENTINEL_RE = re.compile(r"(?:<p>\s*)?<!--youtube:([\w-]{11})-->(?:\s*</
 
 
 def youtube_iframe(video_id, title="YouTube myndband"):
-
+    if not isinstance(video_id, str) or not re.fullmatch(r"[A-Za-z0-9_-]{11}", video_id):
+        raise ValueError("Invalid YouTube video ID")
     return (
         '<div class="video-embed">'
         f'<iframe src="https://www.youtube-nocookie.com/embed/{video_id}" '
@@ -188,6 +192,8 @@ def extract_image_locations(entry_markdown):
             continue
         seen.add(filename)
         image_path = IMAGES_DIR / filename
+        if image_path.resolve().parent != IMAGES_DIR.resolve():
+            continue
         if not image_path.exists():
             continue
         try:
@@ -1273,7 +1279,7 @@ def render_entry_row(entry):
     return (
         f'<details class="entry-row" id="{escape(entry["slug"], quote=True)}">'
         f'<summary>'
-        f'<span class="entry-row-date">{date_is}</span>'
+        f'<span class="entry-row-date">{escape(date_is)}</span>'
         f'<span class="entry-row-title">{escape(entry["title"])}</span>'
         f'{place_chip}'
         f'<span class="entry-row-chevron">&rsaquo;</span>'
@@ -1560,7 +1566,7 @@ def parse_entry(filepath):
         date_str = normalize_date(title_date_match.group(1))
         title = title_date_match.group(2).strip()
 
-    slug = (metadata.get("slug") or filepath.stem).strip()
+    slug = validate_slug((metadata.get("slug") or filepath.stem).strip())
 
     # Legacy compatibility: skip first H1 in body if front matter is not present.
     body_md = content
@@ -1572,8 +1578,20 @@ def parse_entry(filepath):
     body_md = body_md.replace("](../images/", "](images/")
 
     body_html = markdown.markdown(body_md, extensions=["extra", "fenced_code", "sane_lists", "nl2br"])
-    body_html = re.sub(r"<script[\s\S]*?</script>", "", body_html, flags=re.IGNORECASE)
-    body_html = re.sub(r' on\w+="[^"]*"', "", body_html)
+    # Parse HTML using an HTML5 sanitizer, including URL schemes and attributes.
+    # Keep the inert YouTube comments; validated embeds are generated below.
+    body_html = nh3.clean(
+        body_html,
+        tags={"p", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote",
+              "ul", "ol", "li", "strong", "em", "b", "i", "del", "s", "u",
+              "code", "pre", "br", "hr", "img", "a", "table", "thead", "tbody",
+              "tfoot", "tr", "td", "th", "caption", "dl", "dt", "dd", "sup", "sub"},
+        attributes={"a": {"href", "title"}, "img": {"src", "alt", "title"},
+                    "ol": {"start"}, "td": {"colspan", "rowspan"},
+                    "th": {"colspan", "rowspan", "scope"}},
+        url_schemes={"http", "https", "mailto"},
+        strip_comments=False,
+    )
     body_html = re.sub(r"(\s*<hr\s*/?>)+\s*$", "", body_html)
 
     def _img_to_figure_tag(m):
@@ -1603,6 +1621,9 @@ def parse_entry(filepath):
 
 
 def build():
+    # Validate all entries before replacing an existing published output tree.
+    entry_files = sorted(ENTRIES_DIR.glob("*.md"))
+    entries = [parse_entry(f) for f in entry_files]
     if DOCS_DIR.exists():
         shutil.rmtree(DOCS_DIR)
     DOCS_DIR.mkdir()
@@ -1618,9 +1639,6 @@ def build():
     cname_src = Path(__file__).parent / "CNAME"
     if cname_src.exists():
         shutil.copy(cname_src, DOCS_DIR / "CNAME")
-
-    entry_files = sorted(ENTRIES_DIR.glob("*.md"))
-    entries = [parse_entry(f) for f in entry_files]
 
     # Per-entry coordinates come straight from the "Staður:" lines the user
     # wrote in Notion — no geocoding, no guessing. Build the lookup keys
@@ -1642,7 +1660,7 @@ def build():
             f'&larr; Til baka &iacute; Dagb&oacute;k'
             f'</a>'
             f'<article><h1>{escape(entry["title"])}</h1>'
-            f'<div class="entry-date">{date_is}</div>'
+            f'<div class="entry-date">{escape(date_is)}</div>'
             f'{entry["body_html"]}</article>'
             f'{render_entry_pager(prev_entry, next_entry)}'
         )
@@ -1742,7 +1760,7 @@ def build():
                 f'{youtube_iframe(v["id"])}'
                 f'<div class="video-info">'
                 f'<div class="video-title">{escape(v.get("title", "Án titils"))}</div>'
-                f'<div class="video-meta">{date_is}{location_html}</div>'
+                f'<div class="video-meta">{escape(date_is)}{location_html}</div>'
                 f'</div></div>\n'
             )
         videos_body = f'<h1 class="section-heading">Myndbönd</h1>\n<div class="video-grid">{video_items}</div>'
