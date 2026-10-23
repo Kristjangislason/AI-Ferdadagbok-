@@ -169,3 +169,42 @@ def test_valid_download_and_cache(tmp_path, monkeypatch):
     assert (tmp_path / filename).read_bytes() == data
     assert process_journal.download_image("https://images.unsplash.com/photo.jpg", "2026-01-01-") == filename
     assert len(session.calls) == 1
+
+
+def exif_image(tiff):
+    segment = b"Exif\x00\x00" + tiff
+    return b"\xff\xd8\xff\xe1" + (len(segment) + 2).to_bytes(2, "big") + segment + b"\xff\xd9"
+
+
+def test_exif_rejects_out_of_bounds_rational_count(tmp_path):
+    import struct
+    # IFD0 points at a GPS IFD with a count larger than the available bytes.
+    tiff = b"II" + struct.pack("<HI", 42, 8)
+    tiff += struct.pack("<H", 1) + struct.pack("<HHII", 0x8825, 4, 1, 26) + b"\x00" * 4
+    tiff += struct.pack("<H", 1) + struct.pack("<HHII", 2, 5, 0xffffffff, 44) + b"\x00" * 4
+    image = tmp_path / "malformed.jpg"
+    image.write_bytes(exif_image(tiff))
+    assert build_site._read_jpeg_exif_gps(image) == (None, None)
+
+
+@pytest.mark.parametrize("data", [b"\xff\xd8\xff\xe1\x00\x01x", exif_image(b"II\x2a\x00\xff\xff\xff\xff")])
+def test_exif_rejects_invalid_segment_or_ifd_offset(tmp_path, data):
+    image = tmp_path / "malformed.jpg"
+    image.write_bytes(data)
+    assert build_site._read_jpeg_exif_gps(image) == (None, None)
+
+
+def test_exif_preserves_valid_gps(tmp_path):
+    import struct
+    tiff = b"II" + struct.pack("<HI", 42, 8)
+    tiff += struct.pack("<H", 1) + struct.pack("<HHII", 0x8825, 4, 1, 26) + b"\x00" * 4
+    tiff += struct.pack("<H", 4)
+    tiff += struct.pack("<HHI", 1, 2, 2) + b"N\x00\x00\x00"
+    tiff += struct.pack("<HHII", 2, 5, 3, 80)
+    tiff += struct.pack("<HHI", 3, 2, 2) + b"W\x00\x00\x00"
+    tiff += struct.pack("<HHII", 4, 5, 3, 104) + b"\x00" * 4
+    tiff += struct.pack("<IIIIII", 64, 1, 0, 1, 0, 1)
+    tiff += struct.pack("<IIIIII", 21, 1, 0, 1, 0, 1)
+    image = tmp_path / "valid.jpg"
+    image.write_bytes(exif_image(tiff))
+    assert build_site._read_jpeg_exif_gps(image) == (64.0, -21.0)

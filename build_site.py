@@ -139,16 +139,26 @@ def _read_jpeg_exif_gps(image_path):
         if marker in (0xD8, 0xD9):
             continue
         seg_len = int.from_bytes(data[i:i + 2], "big")
+        if seg_len < 2 or i + seg_len > len(data):
+            return None, None
         seg = data[i + 2:i + seg_len]
         i += seg_len
         if marker != 0xE1 or not seg.startswith(b"Exif\x00\x00"):
             continue
         tiff = seg[6:]
+        if len(tiff) < 8 or tiff[:2] not in (b"II", b"MM"):
+            return None, None
         endian = "little" if tiff[:2] == b"II" else "big"
         def u16(off): return int.from_bytes(tiff[off:off + 2], endian, signed=False)
         def u32(off): return int.from_bytes(tiff[off:off + 4], endian, signed=False)
+        if u16(2) != 42:
+            return None, None
         ifd0 = u32(4)
+        if ifd0 < 8 or ifd0 + 2 > len(tiff):
+            return None, None
         n = u16(ifd0)
+        if ifd0 + 2 + n * 12 > len(tiff):
+            return None, None
         gps_ptr = None
         for idx in range(n):
             off = ifd0 + 2 + idx * 12
@@ -156,9 +166,11 @@ def _read_jpeg_exif_gps(image_path):
             if tag == 0x8825:
                 gps_ptr = u32(off + 8)
                 break
-        if gps_ptr is None:
+        if gps_ptr is None or gps_ptr < 8 or gps_ptr + 2 > len(tiff):
             return None, None
         gps_n = u16(gps_ptr)
+        if gps_ptr + 2 + gps_n * 12 > len(tiff):
+            return None, None
         gps = {}
         for idx in range(gps_n):
             off = gps_ptr + 2 + idx * 12
@@ -171,6 +183,10 @@ def _read_jpeg_exif_gps(image_path):
                 gps[tag] = tiff[ptr:ptr + count - 1].decode("ascii", "ignore")
             elif typ == 5:  # RATIONAL
                 ptr = u32(val)
+                # The count is a 32-bit field in untrusted image metadata.
+                # Bound iteration by the actual TIFF data, never by it alone.
+                if count > len(tiff) // 8 or ptr + count * 8 > len(tiff):
+                    return None, None
                 vals = []
                 for j in range(count):
                     num = u32(ptr + j * 8)
