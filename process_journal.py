@@ -5,11 +5,13 @@ import re
 import sys
 from datetime import datetime
 from pathlib import Path
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, urljoin, urlparse
 
 import requests
 from dotenv import load_dotenv
 from notion_client import Client
+
+from content_security import validate_slug
 
 load_dotenv(dotenv_path=".env")
 
@@ -101,6 +103,8 @@ def get_blocks(notion, block_id):
 
 
 def download_image(url, prefix=""):
+    if not re.fullmatch(r"[A-Za-z0-9_-]*", prefix):
+        raise ValueError("Invalid image filename prefix")
     parsed = urlparse(url)
     ext = Path(parsed.path).suffix.lower()
     if ext not in (".png", ".jpg", ".jpeg", ".gif", ".webp"):
@@ -109,10 +113,58 @@ def download_image(url, prefix=""):
     filename = f"{prefix}{h}{ext}"
     filepath = IMAGES_DIR / filename
     if not filepath.exists():
-        resp = requests.get(url, timeout=30)
-        resp.raise_for_status()
-        filepath.write_bytes(resp.content)
+        content = fetch_image_bytes(url)
+        filepath.write_bytes(content)
     return filename
+
+
+DEFAULT_IMAGE_HOSTS = {
+    "prod-files-secure.s3.us-west-2.amazonaws.com",
+    "s3.us-west-2.amazonaws.com",
+    "secure.notion-static.com",
+    "file.notion.so",
+    "images.unsplash.com",
+}
+MAX_IMAGE_BYTES = 20 * 1024 * 1024
+
+
+def validate_image_url(url):
+    """Only configured HTTPS image origins may receive importer requests."""
+    parsed = urlparse(url)
+    allowed = DEFAULT_IMAGE_HOSTS | {
+        host.strip().lower() for host in os.getenv("IMAGE_DOWNLOAD_HOSTS", "").split(",") if host.strip()
+    }
+    if (parsed.scheme != "https" or parsed.hostname not in allowed
+            or parsed.username is not None or parsed.password is not None
+            or parsed.port not in (None, 443)):
+        raise ValueError("Image URL must use an approved HTTPS host; configure IMAGE_DOWNLOAD_HOSTS for trusted external images")
+    return url
+
+
+def fetch_image_bytes(url):
+    # Do not attach ambient .netrc credentials or inherit proxy settings for
+    # URLs supplied in a journal. Check every redirect before making a request.
+    with requests.Session() as session:
+        session.trust_env = False
+        for _ in range(4):
+            validate_image_url(url)
+            with session.get(url, timeout=(10, 30), stream=True, allow_redirects=False) as response:
+                if response.is_redirect:
+                    url = urljoin(url, response.headers["Location"])
+                    continue
+                response.raise_for_status()
+                content = bytearray()
+                for chunk in response.iter_content(chunk_size=64 * 1024):
+                    content.extend(chunk)
+                    if len(content) > MAX_IMAGE_BYTES:
+                        raise ValueError("Image exceeds the 20 MiB download limit")
+                data = bytes(content)
+                if not (data.startswith(b"\xff\xd8\xff") or data.startswith(b"\x89PNG\r\n\x1a\n")
+                        or data.startswith((b"GIF87a", b"GIF89a"))
+                        or (data.startswith(b"RIFF") and data[8:12] == b"WEBP")):
+                    raise ValueError("Downloaded content is not a supported raster image")
+                return data
+    raise ValueError("Image download exceeded the redirect limit")
 
 
 def render_block(notion, block, depth=0, image_prefix=""):
@@ -166,6 +218,8 @@ def render_block(notion, block, depth=0, image_prefix=""):
 
 
 def parse_title_and_date(raw_title, page_meta):
+    # Titles occupy one front-matter line; embedded newlines must not inject metadata.
+    raw_title = " ".join(raw_title.splitlines())
     m = re.match(r"^(\d{4}-\d{2}-\d{2})\s*[-—:]?\s*(.*)$", raw_title.strip())
     if m:
         return m.group(1), (m.group(2).strip() or raw_title.strip())
@@ -191,6 +245,7 @@ def main():
         slug = reg.get(page_id, {}).get("slug") or f"{date}-{slugify(title)}"
         if slug in expected:
             slug = f"{slug}-{page_id[:6]}"
+        slug = validate_slug(slug)
         filename = f"{slug}.md"
         try:
             blocks = get_blocks(notion, page["id"])
@@ -203,7 +258,9 @@ def main():
             reg[page_id] = {"slug": slug, "title": title, "updated": datetime.utcnow().isoformat()}
             expected.add(filename)
         except Exception as e:
-            failed.append(f"{title}: {e}")
+            # HTTP exceptions may contain signed private image URLs.
+            detail = type(e).__name__ if isinstance(e, requests.RequestException) else str(e)
+            failed.append(f"{title}: {detail}")
     if failed:
         print("Sync failures:\n" + "\n".join(failed), file=sys.stderr)
         raise SystemExit(1)
